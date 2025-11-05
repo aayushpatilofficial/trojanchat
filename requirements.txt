@@ -2,11 +2,8 @@ Flask==2.3.3
 Flask-SocketIO==5.5.1
 eventlet==0.33.3
 gunicorn==21.2.0
-python-socketio==5.14.3
-python-engineio==4.12.3
-greenlet==3.2.4
+python-socketio==5.11.3
+python-engineio==4.9.1
+greenlet==3.0.3
 simple-websocket==1.1.0
-blinker==1.9.0
-packaging==25.0
 setuptools==75.1.0
-setuptools-scm==8.1.0
