@@ -1,74 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Command Sync Dashboard</title>
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  <style>
-    body {
-      background: #0e0e10;
-      color: #fff;
-      font-family: 'Poppins', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    input {
-      width: 60%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-    button {
-      background: linear-gradient(45deg, #00c6ff, #0072ff);
-      border: none;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: linear-gradient(45deg, #0072ff, #00c6ff);
-    }
-    #output {
-      margin-top: 20px;
-      max-height: 200px;
-      overflow-y: auto;
-      width: 80%;
-      text-align: left;
-      border-top: 1px solid #333;
-      padding-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask SocketIO with Eventlet</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 </head>
 <body>
-  <h1>🌐 Command Sync Dashboard</h1>
-  <input id="commandInput" placeholder="Type a command like 'open google.com'">
-  <button onclick="sendCommand()">Send Command</button>
-  <div id="output"></div>
+    <h1>Hello, Eventlet!</h1>
+    <input id="msg" type="text" placeholder="Type a message">
+    <button onclick="sendMessage()">Send</button>
 
-  <script>
-    const socket = io();
+    <ul id="messages"></ul>
 
-    function sendCommand() {
-      const cmd = document.getElementById('commandInput').value;
-      socket.emit('command', { command: cmd });
-      document.getElementById('commandInput').value = '';
-    }
+    <script>
+        const socket = io();
 
-    socket.on('message', data => {
-      const div = document.createElement('div');
-      div.textContent = data.msg;
-      document.getElementById('output').appendChild(div);
-    });
-  </script>
+        socket.on("connect", () => {
+            console.log("Connected to server");
+        });
+
+        socket.on("message", msg => {
+            const li = document.createElement("li");
+            li.textContent = msg;
+            document.getElementById("messages").appendChild(li);
+        });
+
+        function sendMessage() {
+            const msg = document.getElementById("msg").value;
+            socket.send(msg);
+        }
+    </script>
 </body>
 </html>
 
