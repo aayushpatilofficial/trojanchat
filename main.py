@@ -1,34 +1,27 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
-from gevent import monkey
-import requests
-
-monkey.patch_all()
+import webbrowser
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-@socketio.on("command")
-def handle_command(cmd):
-    print(f"📡 Command received: {cmd}")
-    emit("broadcast", cmd, broadcast=True)
+@socketio.on('command')
+def handle_command(data):
+    cmd = data['command'].strip().lower()
+    emit('message', {'msg': f'Executing command: {cmd}'}, broadcast=True)
 
-@app.route("/proxy")
-def proxy():
-    url = request.args.get("url")
-    if not url:
-        return "No URL provided", 400
-    try:
-        if not url.startswith("http"):
-            url = "https://" + url
-        r = requests.get(url)
-        return r.text
-    except Exception as e:
-        return f"Error: {e}", 500
+    if cmd.startswith('open '):
+        url = cmd.split('open ')[1]
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        webbrowser.open(url)
+        emit('message', {'msg': f'Opened {url}'}, broadcast=True)
+    else:
+        emit('message', {'msg': 'Unknown command.'}, broadcast=True)
 
-if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=10000)
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=10000)
