@@ -2,126 +2,107 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NeuraCast — Prototype Neural Link</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuraCast — Quantum White</title>
 <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <style>
 :root{
-  --bg:#fafafa; --muted:#9aa0a6; --accent1:#7ed0f0; --accent2:#f0a7d1; --panel: rgba(20,24,28,0.04);
+    --bg:#fafafa;
+    --muted:#9aa0a6;
+    --accent1:#7ed0f0;
+    --accent2:#f0a7d1;
+    --panel: rgba(20,24,28,0.04);
 }
-html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Helvetica,Arial;color:#111}
+html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Helvetica,Arial;color:#111;}
 .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 18px;}
 header{width:100%;max-width:1000px;display:flex;justify-content:space-between;align-items:center}
 h1{margin:0;font-size:18px;color:#222;letter-spacing:0.6px}
+.subtitle{color:var(--muted);font-size:13px}
 .core{width:100%;max-width:1000px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:12px}
 .box{width:300px;height:320px;border-radius:12px;background:var(--panel);border:1px solid rgba(0,0,0,0.04);box-shadow:0 6px 18px rgba(10,10,10,0.03);display:flex;flex-direction:column;padding:18px;box-sizing:border-box;}
 .box h2{margin:0 0 8px 0;font-size:14px;color:#222}
 .log{flex:1;overflow:auto;padding-right:6px;color:#333;font-size:13px;display:flex;flex-direction:column;gap:8px}
 .status{font-size:12px;color:var(--muted);margin-top:8px}
-.transit{width:340px;display:flex;flex-direction:column;align-items:center;gap:14px;height:320px;justify-content:center;}
-.line{width:100%;height:2px;border-radius:2px;background:linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.03));position:relative;overflow:visible;}
-.pulse{position:absolute;height:8px;border-radius:8px;top:-3px;width:0;background:linear-gradient(90deg,var(--accent1),var(--accent2));box-shadow:0 6px 18px rgba(126,208,240,0.16);transform-origin:left center;opacity:0;}
 .input-area{width:100%;max-width:1000px;display:flex;justify-content:center;margin-top:18px}
 input[type="text"]{width:520px;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;font-size:14px;outline:none;}
-.hint{font-size:12px;color:var(--muted);margin-top:8px}
 .decoded{display:inline-block;padding:8px 10px;border-radius:8px;background:rgba(126,208,240,0.12);font-size:13px;color:#0b3b46;border:1px solid rgba(126,208,240,0.18)}
-.log::-webkit-scrollbar{width:6px}
-.log::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:6px}
-.line.active{box-shadow:0 0 28px rgba(126,208,240,0.08)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div>
-      <h1>NeuraCast — Prototype Neural Link</h1>
-      <div style="font-size:12px;color:var(--muted)">Type command → pulse → executes on all devices</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:12px;color:var(--muted)">Status:</div>
-      <div id="conn" style="font-size:13px;color:#111">Connecting…</div>
-    </div>
-  </header>
+    <header>
+        <div>
+            <h1>NeuraCast — Quantum White</h1>
+            <div class="subtitle">Multi-device Command Sync</div>
+        </div>
+        <div style="text-align:right">
+            <div class="subtitle">Status:</div>
+            <div id="conn" style="font-size:13px;color:#111">Connecting…</div>
+        </div>
+    </header>
 
-  <div class="core" role="main">
-    <div class="box">
-      <h2>Device Log</h2>
-      <div class="log" id="log"></div>
-      <div class="status" id="status">Idle</div>
+    <div class="core">
+        <div class="box">
+            <h2>Device Console</h2>
+            <div class="log" id="log"></div>
+            <div class="status" id="st">Idle</div>
+        </div>
     </div>
 
-    <div class="transit">
-      <div class="line" id="path"></div>
-      <div style="font-size:13px;color:var(--muted)">Neural link — visualized pulse</div>
-    </div>
-  </div>
-
-  <div style="width:100%;display:flex;flex-direction:column;align-items:center">
     <div class="input-area">
-      <input id="input" type="text" placeholder="Type command (e.g., open https://google.com)" autocomplete="off" />
+        <input id="input" type="text" placeholder="Type a command (press Enter to send)">
     </div>
-    <div class="hint">Command executes on all connected devices after pulse finishes.</div>
-  </div>
 </div>
 
 <script>
 const socket = io();
-const log = document.getElementById('log');
-const status = document.getElementById('status');
-const path = document.getElementById('path');
+const logEl = document.getElementById('log');
+const stEl = document.getElementById('st');
 const input = document.getElementById('input');
-const conn = document.getElementById('conn');
+const connEl = document.getElementById('conn');
 
-socket.on('connect',()=>{conn.textContent='Connected'; conn.style.color='#0b6';});
-socket.on('disconnect',()=>{conn.textContent='Disconnected'; conn.style.color='#f33';});
+socket.on('connect', ()=>{ connEl.textContent='Connected'; connEl.style.color='#0b6'; });
+socket.on('disconnect', ()=>{ connEl.textContent='Disconnected'; connEl.style.color='#f33'; });
 
-// log
-function appendLog(html){const div=document.createElement('div'); div.innerHTML=html; log.prepend(div);}
-
-// pulse animation
-function animatePulse(duration=3000){
-  path.classList.add('active');
-  const pulse=document.createElement('div'); pulse.className='pulse'; path.appendChild(pulse);
-  const start=performance.now(); const len=path.clientWidth+80;
-  function frame(now){
-    const t=Math.min(1,(now-start)/duration);
-    const ease=t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
-    const left=-40 + ease*len;
-    pulse.style.transform=`translateX(${left}px)`;
-    pulse.style.opacity=(t<0.05?0:1);
-    pulse.style.width=(30+ease*40)+'px';
-    if(t<1) requestAnimationFrame(frame); else { pulse.remove(); path.classList.remove('active'); }
-  } requestAnimationFrame(frame);
+// append log
+function appendLog(msg, type='normal'){
+    const div = document.createElement('div');
+    div.innerHTML = type==='decoded'?`<div class="decoded">${msg}</div>`:msg;
+    logEl.prepend(div);
 }
 
-// execute command
-function executeCommand(cmd){
-  cmd=cmd.toLowerCase();
-  if(cmd.startsWith('open ')){ const url=cmd.replace('open ',''); window.open(url,'_blank'); }
-  else if(cmd.startsWith('alert ')){ const msg=cmd.replace('alert ',''); alert(msg); }
-  else if(cmd.startsWith('bg ')){ const color=cmd.replace('bg ',''); document.body.style.background=color; }
-  else { appendLog(`<div style="color:red">Unknown command: ${cmd}</div>`); }
-}
-
-// input send
-input.addEventListener('keydown', (e)=>{
-  if(e.key==='Enter'){
-    const v=input.value.trim(); if(!v) return;
-    appendLog(`<div class="decoded">Sent: ${v}</div>`);
-    status.textContent='Transmitting...';
-    animatePulse(3000);
-    socket.emit('send_command',{cmd:v});
-    input.value='';
-  }
+// handle incoming command from server
+socket.on('receive_command', (data)=>{
+    const cmd = data.command;
+    appendLog(`<b>Received:</b> ${cmd}`, 'decoded');
+    stEl.textContent = 'Executing...';
+    try {
+        if(cmd.startsWith('open ')){
+            const url = cmd.replace('open ','');
+            window.open(url,'_blank');
+        } else if(cmd.startsWith('search ')){
+            const query = cmd.replace('search ','');
+            window.open(`https://www.google.com/search?q=${query}`,'_blank');
+        } else {
+            console.log('Command:', cmd);
+        }
+    } catch(e){ console.error(e); }
+    stEl.textContent = 'Idle';
 });
 
-// receive
-socket.on('broadcast_command',(data)=>{
-  appendLog(`<div class="decoded">Received: ${data.cmd}</div>`);
-  status.textContent='Idle';
-  executeCommand(data.cmd);
+// send command
+input.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){
+        const cmd = input.value.trim();
+        if(!cmd) return;
+        appendLog(`<b>Sent:</b> ${cmd}`);
+        stEl.textContent = 'Sent';
+        socket.emit('send_command', {command: cmd});
+        input.value='';
+    }
 });
 </script>
 </body>
 </html>
+
 
