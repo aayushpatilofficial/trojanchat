@@ -12,8 +12,8 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Initialize Gemini model
-gemini_model = genai.GenerativeModel("gemini-pro")
+# Initialize Gemini model - using gemini-1.5-flash (current model)
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
 @app.route('/')
 def index():
