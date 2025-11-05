@@ -1,272 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>NeuraCast — Cognitive Bridge (Quantum White)</title>
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-<style>
-  :root{
-    --bg:#fafafa;
-    --muted:#9aa0a6;
-    --accent1:#7ed0f0; /* pastel blue */
-    --accent2:#f0a7d1; /* pastel pink */
-    --panel: rgba(20,24,28,0.04);
-  }
-  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Helvetica,Arial;color:#111}
-  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 18px;}
-  header{width:100%;max-width:1000px;display:flex;justify-content:space-between;align-items:center}
-  h1{margin:0;font-size:18px;color:#222;letter-spacing:0.6px}
-  subtitle{color:var(--muted);font-size:13px}
-  /* core area */
-  .core{width:100%;max-width:1000px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:12px}
-  .box{
-    width:300px;height:320px;border-radius:12px;background:var(--panel);border:1px solid rgba(0,0,0,0.04);box-shadow:0 6px 18px rgba(10,10,10,0.03);
-    display:flex;flex-direction:column;padding:18px;box-sizing:border-box;
-  }
-  .box h2{margin:0 0 8px 0;font-size:14px;color:#222}
-  .log{flex:1;overflow:auto;padding-right:6px;color:#333;font-size:13px;display:flex;flex-direction:column;gap:8px}
-  .status{font-size:12px;color:var(--muted);margin-top:8px}
-  /* transmission area */
-  .transit{
-    width:340px;display:flex;flex-direction:column;align-items:center;gap:14px;height:320px;justify-content:center;
-  }
-  .line{
-    width:100%;height:2px;border-radius:2px;background:linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.03));
-    position:relative;overflow:visible;
-  }
-  .pulse{
-    position:absolute;height:8px;border-radius:8px;top:-3px;width:0;
-    background:linear-gradient(90deg,var(--accent1),var(--accent2));
-    box-shadow:0 6px 18px rgba(126,208,240,0.16);
-    transform-origin:left center;
-    opacity:0;
-  }
-  /* input area */
-  .input-area{width:100%;max-width:1000px;display:flex;justify-content:center;margin-top:18px}
-  input[type="text"]{
-    width:520px;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;font-size:14px;outline:none;
-  }
-  .hint{font-size:12px;color:var(--muted);margin-top:8px}
-  /* decoded text bubble (minimal) */
-  .decoded{
-    display:inline-block;padding:8px 10px;border-radius:8px;background:rgba(126,208,240,0.12);font-size:13px;color:#0b3b46;border:1px solid rgba(126,208,240,0.18)
-  }
-  /* small scrollbar style */
-  .log::-webkit-scrollbar{width:6px}
-  .log::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:6px}
-  /* subtle animate for lines when active */
-  .line.active{box-shadow:0 0 28px rgba(126,208,240,0.08)}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuraCast: Quantum White</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: radial-gradient(circle at center, #ffffff, #e8e8e8);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brain {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 30px rgba(255,255,255,0.8), inset 0 0 30px rgba(200,200,200,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.2rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      gap: 250px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pulse {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #00d4ff, #ff007f);
+      transform: translate(-50%, -50%);
+      animation: pulseMove 3s linear forwards;
+    }
+
+    @keyframes pulseMove {
+      0% { width: 0; opacity: 0; }
+      50% { width: 300px; opacity: 1; }
+      100% { width: 0; opacity: 0; }
+    }
+
+    .console {
+      position: absolute;
+      bottom: 40px;
+      width: 80%;
+      background: rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-family: monospace;
+      max-height: 160px;
+      overflow-y: auto;
+      color: #333;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    button {
+      position: absolute;
+      top: 30px;
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    button:hover { background: #222; }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>NeuraCast — Cognitive Bridge (Quantum White)</h1>
-        <div style="font-size:12px;color:var(--muted)">Emotive AI Signal Link — encoded pulses → decoded text</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:12px;color:var(--muted)">Status:</div>
-        <div id="conn" style="font-size:13px;color:#111">Connecting…</div>
-      </div>
-    </header>
-
-    <div class="core" role="main" aria-label="NeuraCast core">
-      <div class="box" id="boxA">
-        <h2>AI UNIT A</h2>
-        <div class="log" id="logA"></div>
-        <div class="status" id="stA">Idle</div>
-      </div>
-
-      <div class="transit" aria-hidden="false">
-        <div class="line" id="path"></div>
-        <div style="font-size:13px;color:var(--muted)">Neural link — transmission visualized as encoded pulses</div>
-      </div>
-
-      <div class="box" id="boxB">
-        <h2>AI UNIT B</h2>
-        <div class="log" id="logB"></div>
-        <div class="status" id="stB">Idle</div>
-      </div>
-    </div>
-
-    <div style="width:100%;display:flex;flex-direction:column;align-items:center">
-      <div class="input-area">
-        <input id="input" type="text" placeholder="Type a neural data sequence (press Enter to send)" autocomplete="off" />
-      </div>
-      <div class="hint">Text appears for receiver only after the pulse finishes traveling — this simulates decoding.</div>
-    </div>
+  <div class="container">
+    <div class="brain" id="brainA">AI - A</div>
+    <div class="brain" id="brainB">AI - B</div>
   </div>
+  <button onclick="startConversation()">Activate Neural Link</button>
+  <div class="console" id="console"></div>
 
-<script>
-  const socket = io();
-  const connEl = document.getElementById('conn');
-  const logA = document.getElementById('logA');
-  const logB = document.getElementById('logB');
-  const stA = document.getElementById('stA');
-  const stB = document.getElementById('stB');
-  const path = document.getElementById('path');
-  const input = document.getElementById('input');
+  <script>
+    const socket = io();
+    const consoleBox = document.getElementById("console");
+    const body = document.body;
 
-  let myId = null;
-  socket.on('connect', () => {
-    myId = socket.id;
-    connEl.textContent = 'Connected';
-    connEl.style.color = '#0b6';
-  });
-
-  socket.on('disconnect', () => {
-    connEl.textContent = 'Disconnected';
-    connEl.style.color = '#f33';
-  });
-
-  // helper: append log line to box (keeps latest scrolled)
-  function appendLog(el, html){
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    el.prepend(div);
-  }
-
-  // create a pulse element and animate it across path
-  // direction: 'AtoB' or 'BtoA'
-  function animatePulse(direction, color='#7ed0f0', duration=3000){
-    // make path visually active
-    path.classList.add('active');
-
-    const pulse = document.createElement('div');
-    pulse.className = 'pulse';
-    pulse.style.background = `linear-gradient(90deg, ${color}, ${color})`;
-    // starting position & width animated via JS using transforms for precision
-    pulse.style.left = (direction === 'AtoB' ? '-40px' : '100%');
-    pulse.style.width = '0px';
-    path.appendChild(pulse);
-
-    const start = performance.now();
-    const len = path.clientWidth + 80; // travel distance
-    function frame(now){
-      const t = Math.min(1, (now - start) / duration);
-      // easing (easeInOutCubic)
-      const ease = t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-      if(direction === 'AtoB'){
-        const left = -40 + ease * len;
-        pulse.style.transform = `translateX(${left}px)`;
-        pulse.style.opacity = (t < 0.05 ? 0 : 1);
-        pulse.style.width = (30 + ease*40) + 'px';
-      } else {
-        const left = (path.clientWidth + 40) - ease * len;
-        pulse.style.transform = `translateX(${left}px)`;
-        pulse.style.opacity = (t < 0.05 ? 0 : 1);
-        pulse.style.width = (30 + ease*40) + 'px';
-      }
-      if(t < 1) requestAnimationFrame(frame);
-      else {
-        pulse.remove();
-        path.classList.remove('active');
-      }
-    }
-    requestAnimationFrame(frame);
-  }
-
-  // send a signal (from A)
-  function sendSignal(text){
-    if(!text) return;
-    // local log A
-    appendLog(logA, `<div style="color:#333">AI-A: Encoding & emitting — "${escapeHtml(text)}"</div>`);
-    stA.textContent = 'Encoding...';
-    // animate small quick local pulse to show start
-    animatePulse('AtoB','#7ed0f0',1200);
-
-    // actual transmit after short encode delay
-    setTimeout(()=>{
-      // full-length pulse (travel)
-      animatePulse('AtoB','#7ed0f0',3000);
-      stA.textContent = 'Transmitting...';
-      // emit to server: include sender id so receiver can know origin
-      socket.emit('send_signal', {text, sender: myId, timestamp: Date.now()});
-    }, 800);
-  }
-
-  // handle incoming broadcast from server (everyone receives)
-  socket.on('broadcast_signal', (payload) => {
-    // payload: {text, sender, timestamp}
-    const originIsMe = payload.sender === myId;
-    if(originIsMe){
-      // if I'm the origin, show that transmitting finished locally and expect response
-      stA.textContent = 'Sent';
-      appendLog(logA, `<div style="color:var(--muted)">AI-A: Transmission complete</div>`);
-      // optionally show decoded locally as well after travel for demo clarity
-      setTimeout(()=>{
-        appendLog(logA, `<div class="decoded">Decoded (local): ${escapeHtml(payload.text)}</div>`);
-      }, 3400);
-      return;
+    function addLog(text, side) {
+      const p = document.createElement("p");
+      p.textContent = `${side}: ${text}`;
+      consoleBox.appendChild(p);
+      consoleBox.scrollTop = consoleBox.scrollHeight;
     }
 
-    // if not origin, simulate arrival: show path animation from A→B,
-    // then after same travel time reveal decoded message on B
-    stB.textContent = 'Receiving...';
-    appendLog(logB, `<div style="color:var(--muted)">AI-B: Signal incoming...</div>`);
-
-    // animate the long travel pulse on receiver too (synchronized)
-    animatePulse('AtoB','#7ed0f0',3000);
-
-    // when arrives (after 3s), decode and display text on B
-    setTimeout(()=>{
-      stB.textContent = 'Decoding...';
-      setTimeout(()=>{
-        appendLog(logB, `<div class="decoded">${escapeHtml(payload.text)}</div>`);
-        stB.textContent = 'Synchronized';
-        // AI-B can respond (auto) after a small delay to make it look like a conversation
-        setTimeout(()=> aiAutoResponse(payload.text), 1000);
-      }, 800);
-    }, 3000);
-  });
-
-  // AI-B auto reply (emotive style)
-  function aiAutoResponse(receivedText){
-    // generate a short emotive response
-    let resp = 'AI-B: Signal stabilized. Emotional resonance — neutral.';
-    if(/hello|hi|hey/i.test(receivedText)) resp = 'AI-B: Warm resonance detected — calm greeting.';
-    else if(/ready|start|init/i.test(receivedText)) resp = 'AI-B: Alignment confirmed. Preparing synchronized cycle.';
-    else if(/error|fail|problem/i.test(receivedText)) resp = 'AI-B: Error signature noted — initiating corrective subroutine.';
-    // log B sending
-    appendLog(logB, `<div style="color:#333">${escapeHtml(resp)}</div>`);
-    stB.textContent = 'Encoding reply...';
-    // animate reply pulse B->A
-    setTimeout(()=>{
-      animatePulse('BtoA','#f0a7d1',3000);
-      stB.textContent = 'Transmitting reply...';
-      // emit reply to server
-      socket.emit('send_signal', {text: resp, sender: myId, timestamp: Date.now()});
-    }, 900);
-  }
-
-  // small helper to escape HTML for safety in logs
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  }
-
-  // input handling: Enter sends
-  input.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter'){
-      const v = input.value.trim();
-      if(!v) return;
-      sendSignal(v);
-      input.value = '';
+    function createPulse() {
+      const pulse = document.createElement("div");
+      pulse.className = "pulse";
+      body.appendChild(pulse);
+      setTimeout(() => pulse.remove(), 3000);
     }
-  });
 
-  // small random background pulses (auto thought traffic)
-  setInterval(()=>{
-    const r = Math.random();
-    if(r < 0.15){ // occasional
-      animatePulse(Math.random()>0.5 ? 'AtoB' : 'BtoA', '#e6e6e6', 1800);
+    function startConversation() {
+      socket.emit("start_conversation");
+      addLog("🔗 Neural Link Activated...", "SYSTEM");
     }
-  }, 900);
-</script>
+
+    socket.on("neural_pulse", (data) => {
+      createPulse();
+      addLog(data.text, data.from);
+    });
+  </script>
 </body>
-</html>
-
 </html>
 
 
