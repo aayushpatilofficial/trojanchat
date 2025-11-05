@@ -1,283 +1,272 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>🌌 NeuraCast Galaxy Edition 🌌</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NeuraCast — Cognitive Bridge (Quantum White)</title>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
-
-body {
-  margin:0;
-  font-family:'Orbitron', sans-serif;
-  overflow:hidden;
-  background:#000;
-  color:#0ff;
-}
-
-#stars {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  z-index:-2;
-}
-
-#nebula {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background: radial-gradient(circle at 50% 50%, rgba(0,255,231,0.1), transparent 80%);
-  z-index:-1;
-}
-
-#hub{
-  width:100%;
-  height:70vh;
-  position:relative;
-}
-
-.node{
-  width:120px;
-  height:120px;
-  border-radius:50%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:2em;
-  position:absolute;
-  border:3px solid #0ff;
-  box-shadow:0 0 30px #0ff, 0 0 60px #0ff inset;
-  cursor:pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-.node:hover{
-  transform:scale(1.2);
-  box-shadow:0 0 50px #0ff, 0 0 80px #0ff inset;
-}
-.node::after{
-  content:attr(data-name);
-  position:absolute;
-  bottom:-25px;
-  color:#0ff;
-  font-size:1em;
-}
-
-#signal-box{
-  width:70%;
-  margin:20px auto;
-  padding:20px;
-  background:rgba(0,255,231,0.05);
-  border:1px solid #0ff;
-  border-radius:15px;
-  box-shadow:0 0 20px #0ff;
-}
-input{
-  width:60%;
-  padding:10px;
-  border:none;
-  border-radius:5px;
-  background:#001;
-  color:#0ff;
-  outline:none;
-}
-button{
-  padding:10px 20px;
-  margin-left:10px;
-  border:none;
-  border-radius:5px;
-  background:#0ff;
-  color:#000;
-  font-weight:bold;
-  cursor:pointer;
-  transition:0.3s;
-}
-button:hover{
-  transform:scale(1.05);
-}
-.signal{
-  margin:5px;
-  padding:10px;
-  border-bottom:1px solid #0ff;
-  animation:fadeIn 0.4s ease;
-}
-@keyframes fadeIn{
-  from{opacity:0; transform:translateY(-5px);}
-  to{opacity:1; transform:translateY(0);}
-}
-
-.pulse{
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none;
-  box-shadow:0 0 20px #0ff,0 0 40px #0ff inset;
-}
-
-.wave{
-  position:absolute;
-  border:2px solid #0ff;
-  border-radius:50%;
-  opacity:0.5;
-  pointer-events:none;
-  animation:waveAnim 0.8s ease-out forwards;
-}
-@keyframes waveAnim{
-  from{transform:scale(1);opacity:0.5;}
-  to{transform:scale(3);opacity:0;}
-}
+  :root{
+    --bg:#fafafa;
+    --muted:#9aa0a6;
+    --accent1:#7ed0f0; /* pastel blue */
+    --accent2:#f0a7d1; /* pastel pink */
+    --panel: rgba(20,24,28,0.04);
+  }
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Helvetica,Arial;color:#111}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 18px;}
+  header{width:100%;max-width:1000px;display:flex;justify-content:space-between;align-items:center}
+  h1{margin:0;font-size:18px;color:#222;letter-spacing:0.6px}
+  subtitle{color:var(--muted);font-size:13px}
+  /* core area */
+  .core{width:100%;max-width:1000px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:12px}
+  .box{
+    width:300px;height:320px;border-radius:12px;background:var(--panel);border:1px solid rgba(0,0,0,0.04);box-shadow:0 6px 18px rgba(10,10,10,0.03);
+    display:flex;flex-direction:column;padding:18px;box-sizing:border-box;
+  }
+  .box h2{margin:0 0 8px 0;font-size:14px;color:#222}
+  .log{flex:1;overflow:auto;padding-right:6px;color:#333;font-size:13px;display:flex;flex-direction:column;gap:8px}
+  .status{font-size:12px;color:var(--muted);margin-top:8px}
+  /* transmission area */
+  .transit{
+    width:340px;display:flex;flex-direction:column;align-items:center;gap:14px;height:320px;justify-content:center;
+  }
+  .line{
+    width:100%;height:2px;border-radius:2px;background:linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.03));
+    position:relative;overflow:visible;
+  }
+  .pulse{
+    position:absolute;height:8px;border-radius:8px;top:-3px;width:0;
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    box-shadow:0 6px 18px rgba(126,208,240,0.16);
+    transform-origin:left center;
+    opacity:0;
+  }
+  /* input area */
+  .input-area{width:100%;max-width:1000px;display:flex;justify-content:center;margin-top:18px}
+  input[type="text"]{
+    width:520px;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;font-size:14px;outline:none;
+  }
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  /* decoded text bubble (minimal) */
+  .decoded{
+    display:inline-block;padding:8px 10px;border-radius:8px;background:rgba(126,208,240,0.12);font-size:13px;color:#0b3b46;border:1px solid rgba(126,208,240,0.18)
+  }
+  /* small scrollbar style */
+  .log::-webkit-scrollbar{width:6px}
+  .log::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:6px}
+  /* subtle animate for lines when active */
+  .line.active{box-shadow:0 0 28px rgba(126,208,240,0.08)}
 </style>
 </head>
 <body>
-<canvas id="stars"></canvas>
-<div id="nebula"></div>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>NeuraCast — Cognitive Bridge (Quantum White)</h1>
+        <div style="font-size:12px;color:var(--muted)">Emotive AI Signal Link — encoded pulses → decoded text</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--muted)">Status:</div>
+        <div id="conn" style="font-size:13px;color:#111">Connecting…</div>
+      </div>
+    </header>
 
-<h1 style="text-align:center;margin-top:20px;">🌌 NeuraCast Galaxy Edition 🌌</h1>
+    <div class="core" role="main" aria-label="NeuraCast core">
+      <div class="box" id="boxA">
+        <h2>AI UNIT A</h2>
+        <div class="log" id="logA"></div>
+        <div class="status" id="stA">Idle</div>
+      </div>
 
-<div id="hub">
-  <div id="systemA" class="node" data-name="System A">🧠</div>
-  <div id="systemB" class="node" data-name="System B">🤖</div>
-  <div id="systemC" class="node" data-name="AI Node">💡</div>
-</div>
+      <div class="transit" aria-hidden="false">
+        <div class="line" id="path"></div>
+        <div style="font-size:13px;color:var(--muted)">Neural link — transmission visualized as encoded pulses</div>
+      </div>
 
-<div id="signal-box">
-  <input id="signal-input" placeholder="Enter signal code...">
-  <button onclick="sendSignal()">Transmit</button>
-  <div id="signals"></div>
-</div>
+      <div class="box" id="boxB">
+        <h2>AI UNIT B</h2>
+        <div class="log" id="logB"></div>
+        <div class="status" id="stB">Idle</div>
+      </div>
+    </div>
+
+    <div style="width:100%;display:flex;flex-direction:column;align-items:center">
+      <div class="input-area">
+        <input id="input" type="text" placeholder="Type a neural data sequence (press Enter to send)" autocomplete="off" />
+      </div>
+      <div class="hint">Text appears for receiver only after the pulse finishes traveling — this simulates decoding.</div>
+    </div>
+  </div>
 
 <script>
-var socket = io();
-const hub = document.getElementById('hub');
-const nodes = {systemA:{angle:0,radius:0}, systemB:{angle:0,radius:0}, systemC:{angle:0,radius:0}};
+  const socket = io();
+  const connEl = document.getElementById('conn');
+  const logA = document.getElementById('logA');
+  const logB = document.getElementById('logB');
+  const stA = document.getElementById('stA');
+  const stB = document.getElementById('stB');
+  const path = document.getElementById('path');
+  const input = document.getElementById('input');
 
-// Node orbit positions
-const centerX = window.innerWidth/2;
-const centerY = hub.offsetHeight/2;
-const orbitRadius = 200;
-
-function positionNodes(){
-  let idx=0;
-  for(let id in nodes){
-    let angle = idx * 2*Math.PI/3;
-    nodes[id].angle = angle;
-    let node = document.getElementById(id);
-    let x = centerX + orbitRadius*Math.cos(angle) - node.offsetWidth/2;
-    let y = centerY + orbitRadius*Math.sin(angle) - node.offsetHeight/2;
-    node.style.left = x+'px';
-    node.style.top = y+'px';
-    idx++;
-  }
-}
-window.addEventListener('resize',positionNodes);
-positionNodes();
-
-// SEND SIGNAL
-function sendSignal(){
-  const val=document.getElementById('signal-input').value.trim();
-  if(val==='')return;
-  animatePulse('systemA','systemB',val,'#0ff',true);
-  document.getElementById('signal-input').value='';
-}
-
-// PULSE ANIMATION
-function animatePulse(fromId,toId,data,color,emitSignal=true){
-  const fromNode=document.getElementById(fromId);
-  const toNode=document.getElementById(toId);
-  const startX=fromNode.offsetLeft+fromNode.offsetWidth/2;
-  const startY=fromNode.offsetTop+fromNode.offsetHeight/2;
-  const endX=toNode.offsetLeft+toNode.offsetWidth/2;
-  const endY=toNode.offsetTop+toNode.offsetHeight/2;
-
-  let progress=0, steps=300;
-  const trailDivs=[];
-  const interval=setInterval(()=>{
-    progress++;
-    const curve = Math.sin(progress/steps*Math.PI)*50;
-    const x=startX+(endX-startX)*(progress/steps)+curve;
-    const y=startY+(endY-startY)*(progress/steps);
-
-    const trail=document.createElement('div');
-    trail.classList.add('pulse');
-    trail.style.width='14px';
-    trail.style.height='14px';
-    trail.style.background=color;
-    trail.style.left=x+'px';
-    trail.style.top=y+'px';
-    trail.style.opacity=1-(progress/steps);
-    hub.appendChild(trail);
-    trailDivs.push(trail);
-
-    if(progress>=steps){
-      clearInterval(interval);
-      trailDivs.forEach(t=>hub.removeChild(t));
-      showWaveEffect(toId);
-      if(emitSignal) socket.emit('send_signal', data);
-      if(toId==='systemC') autoAIResponse(toId,data);
-    }
-  },25);
-}
-
-// NEURAL RIPPLE
-function showWaveEffect(nodeId){
-  const node=document.getElementById(nodeId);
-  const wave=document.createElement('div');
-  wave.classList.add('wave');
-  wave.style.width=node.offsetWidth+'px';
-  wave.style.height=node.offsetHeight+'px';
-  wave.style.left=node.offsetLeft+'px';
-  wave.style.top=node.offsetTop+'px';
-  document.body.appendChild(wave);
-  setTimeout(()=>document.body.removeChild(wave),800);
-}
-
-// SOCKETIO BROADCAST
-socket.on('broadcast_signal', function(data){
-  const div=document.createElement('div');
-  div.classList.add('signal');
-  div.innerHTML='🧠→🤖 Neural Transmission: <b>'+data+'</b>';
-  document.getElementById('signals').prepend(div);
-  animatePulse('systemA','systemB', data,'#0ff',false);
-});
-
-// AI NODE RESPONSE
-function autoAIResponse(nodeId,data){
-  if(nodeId!=='systemC')return;
-  setTimeout(()=>{
-    const reply='🤖 AI processed: '+data.toUpperCase();
-    animatePulse('systemC','systemA',reply,'#ff0',false);
-    const div=document.createElement('div');
-    div.classList.add('signal');
-    div.innerHTML='💡→🧠 '+reply;
-    document.getElementById('signals').prepend(div);
-  },1200);
-}
-
-// STARFIELD
-const canvas=document.getElementById('stars');
-const ctx=canvas.getContext('2d');
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
-const stars=[];
-for(let i=0;i<250;i++){
-  stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5,dx:(Math.random()-0.5)*0.2,dy:(Math.random()-0.5)*0.2});
-}
-function animateStars(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  stars.forEach(s=>{
-    s.x+=s.dx; s.y+=s.dy;
-    if(s.x<0)s.x=canvas.width;if(s.x>canvas.width)s.x=0;
-    if(s.y<0)s.y=canvas.height;if(s.y>canvas.height)s.y=0;
-    ctx.fillStyle='#0ff';
-    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,2*Math.PI); ctx.fill();
+  let myId = null;
+  socket.on('connect', () => {
+    myId = socket.id;
+    connEl.textContent = 'Connected';
+    connEl.style.color = '#0b6';
   });
-  requestAnimationFrame(animateStars);
-}
-animateStars();
+
+  socket.on('disconnect', () => {
+    connEl.textContent = 'Disconnected';
+    connEl.style.color = '#f33';
+  });
+
+  // helper: append log line to box (keeps latest scrolled)
+  function appendLog(el, html){
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    el.prepend(div);
+  }
+
+  // create a pulse element and animate it across path
+  // direction: 'AtoB' or 'BtoA'
+  function animatePulse(direction, color='#7ed0f0', duration=3000){
+    // make path visually active
+    path.classList.add('active');
+
+    const pulse = document.createElement('div');
+    pulse.className = 'pulse';
+    pulse.style.background = `linear-gradient(90deg, ${color}, ${color})`;
+    // starting position & width animated via JS using transforms for precision
+    pulse.style.left = (direction === 'AtoB' ? '-40px' : '100%');
+    pulse.style.width = '0px';
+    path.appendChild(pulse);
+
+    const start = performance.now();
+    const len = path.clientWidth + 80; // travel distance
+    function frame(now){
+      const t = Math.min(1, (now - start) / duration);
+      // easing (easeInOutCubic)
+      const ease = t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+      if(direction === 'AtoB'){
+        const left = -40 + ease * len;
+        pulse.style.transform = `translateX(${left}px)`;
+        pulse.style.opacity = (t < 0.05 ? 0 : 1);
+        pulse.style.width = (30 + ease*40) + 'px';
+      } else {
+        const left = (path.clientWidth + 40) - ease * len;
+        pulse.style.transform = `translateX(${left}px)`;
+        pulse.style.opacity = (t < 0.05 ? 0 : 1);
+        pulse.style.width = (30 + ease*40) + 'px';
+      }
+      if(t < 1) requestAnimationFrame(frame);
+      else {
+        pulse.remove();
+        path.classList.remove('active');
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // send a signal (from A)
+  function sendSignal(text){
+    if(!text) return;
+    // local log A
+    appendLog(logA, `<div style="color:#333">AI-A: Encoding & emitting — "${escapeHtml(text)}"</div>`);
+    stA.textContent = 'Encoding...';
+    // animate small quick local pulse to show start
+    animatePulse('AtoB','#7ed0f0',1200);
+
+    // actual transmit after short encode delay
+    setTimeout(()=>{
+      // full-length pulse (travel)
+      animatePulse('AtoB','#7ed0f0',3000);
+      stA.textContent = 'Transmitting...';
+      // emit to server: include sender id so receiver can know origin
+      socket.emit('send_signal', {text, sender: myId, timestamp: Date.now()});
+    }, 800);
+  }
+
+  // handle incoming broadcast from server (everyone receives)
+  socket.on('broadcast_signal', (payload) => {
+    // payload: {text, sender, timestamp}
+    const originIsMe = payload.sender === myId;
+    if(originIsMe){
+      // if I'm the origin, show that transmitting finished locally and expect response
+      stA.textContent = 'Sent';
+      appendLog(logA, `<div style="color:var(--muted)">AI-A: Transmission complete</div>`);
+      // optionally show decoded locally as well after travel for demo clarity
+      setTimeout(()=>{
+        appendLog(logA, `<div class="decoded">Decoded (local): ${escapeHtml(payload.text)}</div>`);
+      }, 3400);
+      return;
+    }
+
+    // if not origin, simulate arrival: show path animation from A→B,
+    // then after same travel time reveal decoded message on B
+    stB.textContent = 'Receiving...';
+    appendLog(logB, `<div style="color:var(--muted)">AI-B: Signal incoming...</div>`);
+
+    // animate the long travel pulse on receiver too (synchronized)
+    animatePulse('AtoB','#7ed0f0',3000);
+
+    // when arrives (after 3s), decode and display text on B
+    setTimeout(()=>{
+      stB.textContent = 'Decoding...';
+      setTimeout(()=>{
+        appendLog(logB, `<div class="decoded">${escapeHtml(payload.text)}</div>`);
+        stB.textContent = 'Synchronized';
+        // AI-B can respond (auto) after a small delay to make it look like a conversation
+        setTimeout(()=> aiAutoResponse(payload.text), 1000);
+      }, 800);
+    }, 3000);
+  });
+
+  // AI-B auto reply (emotive style)
+  function aiAutoResponse(receivedText){
+    // generate a short emotive response
+    let resp = 'AI-B: Signal stabilized. Emotional resonance — neutral.';
+    if(/hello|hi|hey/i.test(receivedText)) resp = 'AI-B: Warm resonance detected — calm greeting.';
+    else if(/ready|start|init/i.test(receivedText)) resp = 'AI-B: Alignment confirmed. Preparing synchronized cycle.';
+    else if(/error|fail|problem/i.test(receivedText)) resp = 'AI-B: Error signature noted — initiating corrective subroutine.';
+    // log B sending
+    appendLog(logB, `<div style="color:#333">${escapeHtml(resp)}</div>`);
+    stB.textContent = 'Encoding reply...';
+    // animate reply pulse B->A
+    setTimeout(()=>{
+      animatePulse('BtoA','#f0a7d1',3000);
+      stB.textContent = 'Transmitting reply...';
+      // emit reply to server
+      socket.emit('send_signal', {text: resp, sender: myId, timestamp: Date.now()});
+    }, 900);
+  }
+
+  // small helper to escape HTML for safety in logs
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  // input handling: Enter sends
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){
+      const v = input.value.trim();
+      if(!v) return;
+      sendSignal(v);
+      input.value = '';
+    }
+  });
+
+  // small random background pulses (auto thought traffic)
+  setInterval(()=>{
+    const r = Math.random();
+    if(r < 0.15){ // occasional
+      animatePulse(Math.random()>0.5 ? 'AtoB' : 'BtoA', '#e6e6e6', 1800);
+    }
+  }, 900);
 </script>
 </body>
+</html>
+
 </html>
 
 

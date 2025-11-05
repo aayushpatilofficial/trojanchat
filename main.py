@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
@@ -10,8 +10,8 @@ def index():
     return render_template('index.html')
 
 @socketio.on('send_signal')
-def handle_signal(data):
-    print(f"Signal received: {data}")
+def handle_send(data):
+    # Broadcast to everyone including sender (clients handle not re-emitting)
     emit('broadcast_signal', data, broadcast=True)
 
 if __name__ == '__main__':
