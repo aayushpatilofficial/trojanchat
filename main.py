@@ -1,21 +1,34 @@
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
 from gevent import monkey
-monkey.patch_all()
+import requests
 
-from flask import Flask, render_template, request, redirect
-from flask_socketio import SocketIO
+monkey.patch_all()
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
 
 @app.route("/")
-def home():
-    return "🚀 Flask app running perfectly with Gevent on Render!"
+def index():
+    return render_template("index.html")
 
-# Example event (keep or replace with your own)
-@socketio.on("message")
-def handle_message(msg):
-    print(f"📩 Received message: {msg}")
-    socketio.send(f"Echo: {msg}")
+@socketio.on("command")
+def handle_command(cmd):
+    print(f"📡 Command received: {cmd}")
+    emit("broadcast", cmd, broadcast=True)
+
+@app.route("/proxy")
+def proxy():
+    url = request.args.get("url")
+    if not url:
+        return "No URL provided", 400
+    try:
+        if not url.startswith("http"):
+            url = "https://" + url
+        r = requests.get(url)
+        return r.text
+    except Exception as e:
+        return f"Error: {e}", 500
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=10000)
