@@ -3,34 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask SocketIO with Eventlet</title>
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <title>NeuraSync</title>
+    <style>
+        body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; border-radius: 5px; border: 1px solid #ccc; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
 </head>
 <body>
-    <h1>Hello, Eventlet!</h1>
-    <input id="msg" type="text" placeholder="Type a message">
-    <button onclick="sendMessage()">Send</button>
-
-    <ul id="messages"></ul>
-
-    <script>
-        const socket = io();
-
-        socket.on("connect", () => {
-            console.log("Connected to server");
-        });
-
-        socket.on("message", msg => {
-            const li = document.createElement("li");
-            li.textContent = msg;
-            document.getElementById("messages").appendChild(li);
-        });
-
-        function sendMessage() {
-            const msg = document.getElementById("msg").value;
-            socket.send(msg);
-        }
-    </script>
+    <div class="container">
+        <h2>NeuraSync</h2>
+        <form action="/execute" method="post">
+            <input type="text" name="command" placeholder="Enter command (e.g., open google.com)" required>
+            <button type="submit">Execute</button>
+        </form>
+        {% if result %}
+            <p><strong>Result:</strong> {{ result }}</p>
+        {% endif %}
+    </div>
 </body>
 </html>
 
