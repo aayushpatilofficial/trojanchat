@@ -1,87 +1,125 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neural Link Chat</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NeuraCast — Quantum White</title>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 <style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: #f8f8fa;
-  color: #111;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-.chat-box {
-  width: 420px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.08);
-  padding: 20px;
-  overflow-y: auto;
-  height: 480px;
-  margin-top: 50px;
-}
-.message {
-  margin: 10px 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  max-width: 80%;
-  animation: fadeIn 0.4s ease;
-}
-.a { background: #e8f0fe; align-self: flex-start; }
-.b { background: #d1ffd6; align-self: flex-end; margin-left: auto; }
-button {
-  width: 200px;
-  padding: 12px;
-  margin-top: 16px;
-  border: none;
-  border-radius: 12px;
-  background: #111;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
-}
-button:hover { background: #333; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+  :root{
+    --bg:#fafafa;
+    --muted:#9aa0a6;
+    --accent1:#7ed0f0;
+    --accent2:#f0a7d1;
+    --panel: rgba(20,24,28,0.04);
+  }
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Segoe UI,Helvetica,Arial;color:#111}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;padding:28px 18px;}
+  header{width:100%;max-width:1000px;display:flex;justify-content:space-between;align-items:center}
+  h1{margin:0;font-size:18px;color:#222;letter-spacing:0.6px}
+  .core{width:100%;max-width:1000px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:12px}
+  .box{width:300px;height:320px;border-radius:12px;background:var(--panel);border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;padding:18px;box-sizing:border-box;}
+  .box h2{margin:0 0 8px 0;font-size:14px;color:#222}
+  .log{flex:1;overflow:auto;padding-right:6px;color:#333;font-size:13px;display:flex;flex-direction:column;gap:8px}
+  .status{font-size:12px;color:var(--muted);margin-top:8px}
+  .transit{width:340px;display:flex;flex-direction:column;align-items:center;gap:14px;height:320px;justify-content:center;}
+  .line{width:100%;height:2px;border-radius:2px;background:linear-gradient(90deg, rgba(0,0,0,0.03), rgba(0,0,0,0.03));position:relative;overflow:visible;}
+  .pulse{position:absolute;height:8px;border-radius:8px;top:-3px;width:0;background:linear-gradient(90deg,var(--accent1),var(--accent2));box-shadow:0 6px 18px rgba(126,208,240,0.16);transform-origin:left center;opacity:0;}
+  .input-area{width:100%;max-width:1000px;display:flex;justify-content:center;margin-top:18px}
+  input[type="text"]{width:520px;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;font-size:14px;outline:none;}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .decoded{display:inline-block;padding:8px 10px;border-radius:8px;background:rgba(126,208,240,0.12);font-size:13px;color:#0b3b46;border:1px solid rgba(126,208,240,0.18)}
+  .log::-webkit-scrollbar{width:6px}
+  .log::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:6px}
 </style>
 </head>
 <body>
-  <h2>🤖 Neural Link: A ↔ B</h2>
-  <div class="chat-box" id="chat"></div>
-  <button onclick="talk()">▶ Activate Neural Link</button>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>NeuraCast — Quantum White</h1>
+      <div style="font-size:12px;color:var(--muted)">Device synchronized commands — all devices update simultaneously</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:12px;color:var(--muted)">Status:</div>
+      <div id="conn" style="font-size:13px;color:#111">Connecting…</div>
+    </div>
+  </header>
+
+  <div class="core">
+    <div class="box">
+      <h2>Device Log</h2>
+      <div class="log" id="log"></div>
+      <div class="status" id="st">Idle</div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input id="input" type="text" placeholder="Type a command (press Enter)" autocomplete="off" />
+  </div>
+  <div class="hint">Commands will be executed across all devices connected to this page.</div>
+</div>
 
 <script>
-let running = false;
-async function talk() {
-  if (running) return;
-  running = true;
-  const chatBox = document.getElementById('chat');
-  chatBox.innerHTML += `<div class="message a">Activating link...</div>`;
+const socket = io();
+const connEl = document.getElementById('conn');
+const log = document.getElementById('log');
+const st = document.getElementById('st');
+const input = document.getElementById('input');
 
-  for (let i = 0; i < 5; i++) { // 5 exchanges
-    const res = await fetch('/chat');
-    const data = await res.json();
-    chatBox.innerHTML = '';
-    data.forEach(msg => {
-      const div = document.createElement('div');
-      div.className = 'message ' + (msg.content.startsWith('A:') ? 'a' : 'b');
-      div.textContent = msg.content;
-      chatBox.appendChild(div);
-    });
-    chatBox.scrollTop = chatBox.scrollHeight;
-    await new Promise(r => setTimeout(r, 2000));
-  }
-  running = false;
+// Socket connection
+socket.on('connect', ()=>{ connEl.textContent='Connected'; connEl.style.color='#0b6'; });
+socket.on('disconnect', ()=>{ connEl.textContent='Disconnected'; connEl.style.color='#f33'; });
+
+// Append to log
+function appendLog(html){
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  log.prepend(div);
 }
+
+// Animate pulse
+function animatePulse(duration=2000){
+  const line = document.createElement('div');
+  line.className='line';
+  const pulse = document.createElement('div');
+  pulse.className='pulse';
+  line.appendChild(pulse);
+  document.body.appendChild(line);
+  const start = performance.now();
+  function frame(now){
+    const t=Math.min(1,(now-start)/duration);
+    pulse.style.width = (t*100)+'%';
+    pulse.style.opacity=1-t*0.7;
+    if(t<1) requestAnimationFrame(frame);
+    else { line.remove(); }
+  }
+  requestAnimationFrame(frame);
+}
+
+// Send command
+function sendCommand(cmd){
+  if(!cmd) return;
+  appendLog(`<div style="color:#333">You: ${cmd}</div>`);
+  st.textContent='Transmitting...';
+  animatePulse(2000);
+  socket.emit('send_command',{cmd});
+  input.value='';
+}
+
+// Receive broadcast
+socket.on('broadcast_command',(data)=>{
+  appendLog(`<div class="decoded">Received: ${data.cmd}</div>`);
+  st.textContent='Idle';
+});
+
+// Input Enter
+input.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    sendCommand(input.value.trim());
+  }
+});
 </script>
 </body>
 </html>
+
