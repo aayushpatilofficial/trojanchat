@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect
-from flask_socketio import SocketIO
 from gevent import monkey
 monkey.patch_all()
+
+from flask import Flask, render_template, request, redirect
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent")
