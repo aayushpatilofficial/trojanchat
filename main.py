@@ -69,14 +69,15 @@ def on_command(data):
         print(f'   Sender: {sender_id}')
         print(f'   Total clients: {len(connected_clients)}')
 
-        # Confirm to sender
-        emit('command_sent', {
+        # Send to SENDER too (so they see it execute)
+        socketio.emit('command_received', {
             'command': command,
-            'timestamp': timestamp
-        })
-        print(f'   ✓ Sent confirmation to sender')
+            'timestamp': timestamp,
+            'sender': sender_id[:6]
+        }, room=sender_id)
+        print(f'   ✓ Sent to sender')
 
-        # Send to each OTHER client individually
+        # Send to each OTHER client
         for client_id in connected_clients.keys():
             if client_id != sender_id:
                 print(f'   → Sending to client: {client_id}')
