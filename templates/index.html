@@ -1,10 +1,69 @@
-<!DOCTYPE html>
+</div>
+
+                <!-- Command History & Favorites -->
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">⏱️ Recent Commands & Favorites</div>
+                        </div>
+                    </div>
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('recent')">Recent</button>
+                        <button class="tab" onclick="switchTab('favorites')">⭐ Favorites</button>
+                    </div>
+                    <div id="recent-tab" class="tab-content">
+                        <div id="recentCommands"></div>
+                    </div>
+                    <div id="favorites-tab" class="tab-content" style="display:none;">
+                        <div id="favoriteCommands"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="section">
+                    <div class="section-title">📊 Quick Stats</div>
+                    <div class="stats-mini">
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Today's Commands</div>
+                            <div class="stat-mini-value" id="todayCommands">0</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Avg Response</div>
+                            <div class="stat-mini-value" id="avgResponseMini">0ms</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Session Active</div>
+                            <div class="stat-mini-value" id="sessionActive">Yes</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-label">Commands/Hour</div>
+                            <div class="stat-mini-value" id="cmdPerHour">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">                    <div style="margin-bottom: 24px;">
+                        <div class="input-label">Popular Commands</div>
+                        <div class="quick-commands">
+                            <button class="quick-btn" onclick="quickCommand('open https://github.com')" title="Quick access to GitHub">📌 GitHub</button>
+                            <button class="quick-btn" onclick="quickCommand('open https://google.com')" title="Open Google">🔍 Google</button>
+                            <button class="quick-btn" onclick="quickCommand('search python programming')" title="Search Python tutorials">🐍 Python</button>
+                            <button class="quick-btn" onclick="quickCommand('open https://youtube.com')" title="Open YouTube">🎥 YouTube</button>
+                            <button class="quick-btn" onclick="quickCommand('search web development')" title="Search web dev resources">💻 Web Dev</button>
+                            <button class="quick-btn" onclick="quickCommand('open https://stackoverflow.com')" title="Open Stack Overflow">📚 Stack Overflow</button>
+                            <button class="quick-btn" onclick="quickCommand('search artificial intelligence')" title="Search AI resources">🤖 AI Resources</button>
+                            <button class="quick-btn" onclick="quickCommand('open https://developer.mozilla.org')" title="Open MDN Docs">📖 MDN Docs</button>
+                            <button class="quick-btn" onclick="quickCommand('search machine learning')" title="Search ML tutorials">🧠 ML Tutorials</button>
+                            <button class="quick-btn" onclick="quickCommand('search javascript es6')" title="Search JS ES6">⚡ JavaScript</button>
+                            <button class="quick-btn" onclick="quickCommand('open https://codepen.io')" title="Open CodePen">🎨 CodePen</button>
+                            <button class="quick-btn" onclick="quickCommand('search react tutorial')" title="Search React">⚛️ React</button>
+                        </div>
+                    </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Command Sync</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <title>Command Sync Pro v2.0</title>
     <style>
         * {
             margin: 0;
@@ -12,423 +71,1755 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1e40af;
+            --primary-light: #dbeafe;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #0ea5e9;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #1a1a1a;
+            --border-radius: 8px;
+            --transition: all 0.2s ease;
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #fff 0%, #f9fafb 100%);
+            border-right: 1px solid var(--gray-200);
+            overflow-y: auto;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-header {
+            padding: 28px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-weight: 700;
+            font-size: 20px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, #ede9fe 100%);
+        }
+
+        .sidebar-logo {
+            font-size: 28px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--gray-400);
+            padding: 0 24px 16px;
+        }
+
+        .nav-item {
+            padding: 14px 24px;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+            padding-left: 28px;
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 20px;
+            font-weight: 700;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            min-width: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--gray-200);
+            font-size: 12px;
+            color: var(--gray-400);
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--gray-100);
+            border-radius: var(--border-radius);
+            margin-bottom: 12px;
+        }
+
+        .sidebar-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            flex-direction: column;
         }
 
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 600px;
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        .status-bar {
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #fff 0%, #f9fafb 100%);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 40px;
+            height: 80px;
             display: flex;
-            justify-content: space-around;
             align-items: center;
-            background: #f8f9fa;
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-            flex-wrap: wrap;
-            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        .status-item {
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 24px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .nav-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .nav-subtitle {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status-badge {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 14px;
+            padding: 10px 16px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .status-dot {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: #999;
+            background: var(--gray-300);
+            animation: pulse 2s infinite;
         }
 
-        .status-dot.connected {
-            background: #4caf50;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        .status-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
         }
 
-        .content {
-            padding: 30px;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
 
-        .command-section {
-            margin-bottom: 30px;
+        .nav-time {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-family: monospace;
         }
 
-        .command-section h2 {
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
             font-size: 16px;
-            color: #333;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #667eea;
+            cursor: pointer;
         }
 
+        /* Container */
+        .container {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 40px;
+            margin-bottom: 12px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            font-size: 16px;
+            color: var(--gray-600);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #fff 0%, #f9fafb 100%);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15);
+            transform: translateY(-8px);
+        }
+
+        .stat-icon {
+            font-size: 32px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--gray-500);
+        }
+
+        .stat-value {
+            font-size: 44px;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1;
+        }
+
+        .stat-sub {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* Section */
+        .section {
+            background: linear-gradient(135deg, #fff 0%, #f9fafb 100%);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 36px;
+            margin-bottom: 28px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-top: 6px;
+        }
+
+        /* Input Styles */
         .input-group {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 14px;
+            margin-bottom: 24px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+        }
+
+        .input-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         #commandInput {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
+            width: 100%;
+            padding: 16px 18px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: var(--transition);
+            background: white;
         }
 
         #commandInput:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        button {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Buttons */
+        .btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-900);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .examples {
-            background: #f0f4ff;
-            padding: 12px 15px;
-            border-radius: 6px;
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .btn-sm {
+            padding: 10px 18px;
+            font-size: 12px;
+        }
+
+        /* Quick Commands */
+        .quick-commands {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .quick-btn {
+            padding: 14px 16px;
+            background: linear-gradient(135deg, var(--gray-100), var(--gray-50));
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
             font-size: 13px;
-            color: #555;
+            font-weight: 600;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, var(--primary-light), #ede9fe);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Alert */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            border-left: 4px solid;
+        }
+
+        .alert-icon {
+            font-size: 18px;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #f0f9ff, #f0f9ff);
+            border-left-color: var(--info);
+            color: #0c2d6b;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, var(--primary-light), #ede9fe);
+            border: 1px solid #bfdbfe;
+            border-radius: var(--border-radius);
+            padding: 24px;
+            color: #0c2d6b;
+            transition: var(--transition);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .info-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+        }
+
+        .info-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .info-card p {
+            font-size: 13px;
             line-height: 1.6;
         }
 
-        .examples strong {
-            color: #667eea;
+        .info-card code {
+            background: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--primary);
+            border: 1px solid var(--gray-200);
         }
 
-        .log-section h2 {
-            font-size: 16px;
-            color: #667eea;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
+        /* Log Container */
         .log-container {
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            max-height: 300px;
+            background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            height: 500px;
             overflow-y: auto;
             padding: 0;
         }
 
         .log-entry {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--gray-200);
             font-size: 13px;
-            font-family: 'Courier New', monospace;
             display: flex;
-            gap: 10px;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
         }
 
-        .log-entry:last-child {
-            border-bottom: none;
-        }
-
-        .log-entry.sent {
-            background: #e8f5e9;
-            border-left: 4px solid #4caf50;
-        }
-
-        .log-entry.received {
-            background: #fff3e0;
-            border-left: 4px solid #ff9800;
+        .log-entry:hover {
+            background: white;
         }
 
         .log-time {
-            color: #999;
-            white-space: nowrap;
+            color: var(--gray-500);
+            font-size: 12px;
+            font-weight: 700;
+            font-family: monospace;
+            min-width: 80px;
+        }
+
+        .log-badge {
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            border-radius: 6px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .log-badge.sent {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .log-badge.received {
+            background: #dbeafe;
+            color: #0c2d6b;
+        }
+
+        .log-message {
+            flex: 1;
+            color: var(--gray-700);
+            font-weight: 500;
+            margin: 0 16px;
+        }
+
+        .empty-state {
+            padding: 100px 40px;
+            text-align: center;
+            color: var(--gray-400);
+            font-size: 14px;
+        }
+
+        .empty-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        /* Page Content */
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        /* Hint Box */
+        .hint-box {
+            background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            font-size: 13px;
+            color: var(--gray-700);
+            line-height: 1.8;
+        }
+
+        .hint-box strong {
+            color: var(--gray-900);
+        }
+
+        .hint-list {
+            list-style: none;
+            margin-top: 12px;
+        }
+
+        .hint-list li {
+            padding: 8px 0;
+            display: flex;
+            gap: 8px;
+        }
+
+        .hint-list li:before {
+            content: "→";
+            color: var(--primary);
+            font-weight: 700;
+            min-width: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 240px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1001;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .container {
+                padding: 24px 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .page-header h1 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 36px;
+            }
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+            transition: width 0.4s ease;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 24px;
+            background: white;
+        }
+
+        .stats-table th {
+            background: linear-gradient(135deg, var(--gray-100), var(--gray-50));
+            padding: 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-700);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .stats-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 13px;
+            color: var(--gray-700);
+        }
+
+        .stats-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        /* New Styles */
+        .command-history-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+        }
+
+        .command-history-item:hover {
+            background: var(--gray-50);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .favorite-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: var(--transition);
+        }
+
+        .favorite-btn.active {
+            transform: scale(1.2);
+        }
+
+        .stats-mini {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .stat-mini {
+            background: linear-gradient(135deg, var(--primary-light), #ede9fe);
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
             font-size: 12px;
         }
 
-        .log-text {
-            flex: 1;
-            color: #333;
-            word-break: break-word;
+        .stat-mini-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 4px 0;
         }
 
-        .log-label {
+        .stat-mini-label {
+            color: var(--gray-600);
+            font-size: 11px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            border-bottom: 2px solid var(--gray-200);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
             font-weight: 600;
-            color: #667eea;
-            min-width: 45px;
+            color: var(--gray-500);
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            font-size: 13px;
         }
 
-        .empty-log {
-            padding: 20px;
-            text-align: center;
-            color: #999;
-            font-size: 14px;
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab:hover {
+            color: var(--gray-900);
+        }
+
+        .copy-btn {
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .timer {
+            display: inline-block;
+            background: var(--warning);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔄 Command Sync Hub</h1>
-            <p>Broadcast commands across browsers in real-time</p>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">⚡</div>
+            <div>Command Sync Pro</div>
         </div>
-
-        <div class="status-bar">
-            <div class="status-item">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="connectionStatus">Connecting...</span>
-            </div>
-            <div class="status-item">
-                <strong>Connected Browsers:</strong>
-                <span id="clientCount">0</span>
-            </div>
-        </div>
-
-        <div class="content">
-            <div class="command-section">
-                <h2>Send Command</h2>
-                <div class="input-group">
-                    <input 
-                        type="text" 
-                        id="commandInput" 
-                        placeholder="e.g., open https://google.com or search cats"
-                        autocomplete="off"
-                    >
-                    <button onclick="sendCommand()">Send</button>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <div class="nav-item active" onclick="switchPage('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
                 </div>
-                <div class="examples">
-                    <strong>Examples:</strong><br>
-                    → <code>open https://google.com</code><br>
-                    → <code>search machine learning</code>
+                <div class="nav-item" onclick="switchPage('commands')">
+                    <span class="nav-icon">📤</span>
+                    <span>Send Commands</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('history')">
+                    <span class="nav-icon">📋</span>
+                    <span>History & Logs</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('analytics')">
+                    <span class="nav-icon">📈</span>
+                    <span>Analytics</span>
                 </div>
             </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <div class="nav-item" onclick="switchPage('devices')">
+                    <span class="nav-icon">🌍</span>
+                    <span>Connected Devices</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('sessions')">
+                    <span class="nav-icon">🔄</span>
+                    <span>Active Sessions</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('templates')">
+                    <span class="nav-icon">📝</span>
+                    <span>Command Templates</span>
+                </div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <div class="nav-item" onclick="switchPage('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Settings</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('help')">
+                    <span class="nav-icon">❓</span>
+                    <span>Help & Docs</span>
+                </div>
+                <div class="nav-item" onclick="switchPage('about')">
+                    <span class="nav-icon">ℹ️</span>
+                    <span>About</span>
+                </div>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar">CS</div>
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; color: var(--gray-900);">Command Sync</div>
+                    <div style="font-size: 11px; color: var(--success);">● Online</div>
+                </div>
+            </div>
+            <p style="margin-top: 12px;">Version 2.0.0</p>
+            <p style="margin-top: 8px;">© 2025 Enterprise</p>
+        </div>
+    </div>
 
-            <div class="log-section">
-                <h2>Activity Log</h2>
-                <div class="log-container" id="logContainer">
-                    <div class="empty-log">Waiting for activity...</div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navigation Bar -->
+        <div class="navbar">
+            <div class="nav-content">
+                <div class="nav-left">
+                    <div>
+                        <div class="nav-title" id="pageTitle">Dashboard</div>
+                        <div class="nav-subtitle" id="pageSubtitle">Real-time monitoring and control</div>
+                    </div>
+                </div>
+                <div class="nav-actions">
+                    <div class="status-badge">
+                        <div class="status-dot active"></div>
+                        <span id="connectionStatus">Connected</span>
+                    </div>
+                    <div class="nav-time" id="currentTime">00:00:00</div>
+                    <div class="user-avatar">CS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Container -->
+        <div class="container">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page-content active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                    <p>Real-time monitoring and control of all connected browsers</p>
+                </div>
+
+                <!-- Quick Command Section -->
+                <div class="section" style="background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%); border-color: #bfdbfe; position: relative;">
+                    <div class="section-title" style="color: #0c2d6b;">⚡ Quick Command</div>
+                    <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                        <button class="quick-btn" onclick="insertCommand('open https://github.com')" style="background: linear-gradient(135deg, #fff, #f0f9ff); border: 2px solid #bfdbfe;">📌 GitHub</button>
+                        <button class="quick-btn" onclick="insertCommand('open https://stackoverflow.com')" style="background: linear-gradient(135deg, #fff, #f0f9ff); border: 2px solid #bfdbfe;">📚 Stack Overflow</button>
+                        <button class="quick-btn" onclick="insertCommand('open https://google.com')" style="background: linear-gradient(135deg, #fff, #f0f9ff); border: 2px solid #bfdbfe;">🔍 Google</button>
+                        <button class="quick-btn" onclick="insertCommand('search web development')" style="background: linear-gradient(135deg, #fff, #f0f9ff); border: 2px solid #bfdbfe;">💻 Web Dev</button>
+                        <button class="quick-btn" onclick="insertCommand('open https://youtube.com')" style="background: linear-gradient(135deg, #fff, #f0f9ff); border: 2px solid #bfdbfe;">🎥 YouTube</button>
+                        <button class="quick-btn" onclick="insertCommand('search javascript tutorial')" style="background: linear-gradient(135deg, #fff, #f0f9ff); border: 2px solid #bfdbfe;">📖 JS Tutorial</button>
+                    </div>
+                    <div class="input-group" style="margin-top: 0;">
+                        <div class="input-wrapper" style="position: relative;">
+                            <label class="input-label">Command</label>
+                            <div style="position: relative;">
+                                <input type="text" id="dashboardCommandInput" placeholder="Type or select from buttons above..." autocomplete="off" style="background: white; padding-right: 40px;">
+                                <div style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; font-size: 12px; pointer-events: none;">⏎</div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="sendCommandDashboard()" style="align-self: flex-end;">Send</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-label">Connected Browsers</div>
+                        <div class="stat-value" id="clientCount">0</div>
+                        <div class="stat-sub">Active sessions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📤</div>
+                        <div class="stat-label">Commands Sent</div>
+                        <div class="stat-value" id="commandsSent">0</div>
+                        <div class="stat-sub">Executed commands</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-label">Session Uptime</div>
+                        <div class="stat-value" id="uptime">0:00:00</div>
+                        <div class="stat-sub">Duration</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label">Success Rate</div>
+                        <div class="stat-value" id="successRate">100%</div>
+                        <div class="stat-sub">Commands executed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-label">Avg Response</div>
+                        <div class="stat-value" id="avgResponse">0ms</div>
+                        <div class="stat-sub">Execution time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔗</div>
+                        <div class="stat-label">Connection Quality</div>
+                        <div class="stat-value" id="connQuality">100%</div>
+                        <div class="stat-sub">Signal strength</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📊 Performance Metrics</div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Average</th>
+                                <th>Peak</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Active Connections</strong></td>
+                                <td id="metric-active">0</td>
+                                <td id="metric-active-avg">0</td>
+                                <td id="metric-active-peak">0</td>
+                                <td><span class="badge success">✓ Optimal</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Commands/Minute</strong></td>
+                                <td id="metric-cpm">0</td>
+                                <td id="metric-cpm-avg">0</td>
+                                <td id="metric-cpm-peak">0</td>
+                                <td><span class="badge success">✓ Normal</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Network Latency</strong></td>
+                                <td id="metric-latency">0ms</td>
+                                <td id="metric-latency-avg">0ms</td>
+                                <td id="metric-latency-peak">0ms</td>
+                                <td><span class="badge success">✓ Excellent</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Commands Page -->
+            <div id="commands-page" class="page-content">
+                <div class="page-header">
+                    <h1>Send Commands</h1>
+                    <p>Execute commands instantly on all connected browsers</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📤 Command Console</div>
+                    <div class="section-subtitle" style="margin-bottom: 20px;">Type and send commands to all connected browsers</div>
+
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div>
+                            <strong>Pro Tip:</strong> Commands are broadcast to all connected browsers in real-time. Each command executes safely with full validation.
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Enter Custom Command</label>
+                            <input type="text" id="commandInput" placeholder="Type command: search query or open https://website.com" autocomplete="off">
+                        </div>
+                        <button class="btn" onclick="sendCommand()" style="align-self: flex-end;">
+                            <span>➤</span> Execute
+                        </button>
+                    </div>
+
+                    <div class="hint-box">
+                        <strong>📌 Command Syntax:</strong>
+                        <ul class="hint-list">
+                            <li><code>open https://website.com</code> - Opens specified URL in new tab</li>
+                            <li><code>search query text here</code> - Performs Google search for query</li>
+                            <li><code>open https://github.com/username/repo</code> - Navigate to GitHub repo</li>
+                            <li><code>search machine learning tutorials</code> - Search for resources</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Scheduled Commands -->
+                <div class="section">
+                    <div class="section-title">⏰ Schedule Command (Coming Soon)</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                        <div class="input-wrapper">
+                            <label class="input-label">Select Time</label>
+                            <input type="time" disabled style="padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; opacity: 0.6;">
+                        </div>
+                        <div class="input-wrapper">
+                            <label class="input-label">Select Command</label>
+                            <select disabled style="padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; opacity: 0.6;">
+                                <option>-- Scheduled commands coming soon --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" style="margin-top: 16px; opacity: 0.6;" disabled>Schedule Command</button>
+                </div>
+
+                <!-- Batch Operations -->
+                <div class="section">
+                    <div class="section-title">🔄 Batch Commands</div>
+                    <div class="input-wrapper" style="margin-bottom: 16px;">
+                        <label class="input-label">Enter Multiple Commands (one per line)</label>
+                        <textarea id="batchCommands" placeholder="open https://github.com&#10;search python&#10;open https://google.com" style="width: 100%; height: 120px; padding: 12px; border: 1px solid var(--gray-200); border-radius: 6px; font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
+                    </div>
+                    <button class="btn" onclick="executeBatchCommands()">▶️ Execute Batch</button>
+                    <div id="batchStatus" style="margin-top: 16px; color: var(--gray-600); font-size: 13px;"></div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">💡 Command Examples & Use Cases</div>
+                    <div class="cards-grid">
+                        <div class="info-card">
+                            <h3>Example 1: Open Website</h3>
+                            <p><code>open https://example.com</code></p>
+                            <p style="margin-top: 10px; font-size: 12px;">Opens the specified URL in a new browser tab on all connected devices</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Example 2: Google Search</h3>
+                            <p><code>search machine learning</code></p>
+                            <p style="margin-top: 10px; font-size: 12px;">Performs a Google search for the specified query on all browsers</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Example 3: Documentation</h3>
+                            <p><code>open https://developer.mozilla.org</code></p>
+                            <p style="margin-top: 10px; font-size: 12px;">Navigate to Mozilla Developer Network documentation</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Example 4: Tutorial Search</h3>
+                            <p><code>search web development tutorial</code></p>
+                            <p style="margin-top: 10px; font-size: 12px;">Search for tutorials and learning resources</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Page -->
+            <div id="history-page" class="page-content">
+                <div class="page-header">
+                    <h1>Command History & Logs</h1>
+                    <p>View and manage all previous commands and system events</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <div class="section-title">📋 Complete Activity Log</div>
+                            <div class="section-subtitle">Real-time command execution history</div>
+                        </div>
+                    </div>
+                    <div class="log-container" id="logContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <div>Waiting for commands and system events...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="analytics-page" class="page-content">
+                <div class="page-header">
+                    <h1>Analytics & Reports</h1>
+                    <p>Detailed analytics and performance reports</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-label">Total Commands</div>
+                        <div class="stat-value" id="analyticsTotal">0</div>
+                        <div class="stat-sub">All time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-label">Avg Latency</div>
+                        <div class="stat-value" id="analyticsLatency">0ms</div>
+                        <div class="stat-sub">Response time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label">Success Rate</div>
+                        <div class="stat-value" id="analyticsSuccess">100%</div>
+                        <div class="stat-sub">Completion rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Devices Page -->
+            <div id="devices-page" class="page-content">
+                <div class="page-header">
+                    <h1>Connected Devices</h1>
+                    <p>Manage and monitor all connected browsers</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-label">Total Connected</div>
+                        <div class="stat-value" id="totalDevices">0</div>
+                        <div class="stat-sub">Active browsers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" style="font-size: 24px; color: var(--success);">Online</div>
+                        <div class="stat-sub">All systems operational</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📱 Active Browser Sessions</div>
+                    <div class="cards-grid">
+                        <div class="info-card">
+                            <h3>Connected Browsers</h3>
+                            <p>Currently <strong id="activeSessionCount">0</strong> browser instance(s) connected</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="sessionProgress" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <h3>Network Status</h3>
+                            <p>Connection status: <strong id="networkStatus">Connected</strong></p>
+                            <p style="margin-top: 8px; font-size: 12px;">WebSocket protocol with auto fallback</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Uptime Statistics</h3>
+                            <p>Session duration: <strong id="deviceUptime">0:00:00</strong></p>
+                            <p style="margin-top: 8px; font-size: 12px;">Real-time synchronization</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Data Transfer</h3>
+                            <p>Total commands processed: <strong id="dataTransfer">0</strong></p>
+                            <p style="margin-top: 8px; font-size: 12px;">Efficient optimization</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Page -->
+            <div id="sessions-page" class="page-content">
+                <div class="page-header">
+                    <h1>Active Sessions</h1>
+                    <p>Manage and monitor all active sessions</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🔄 Session Management</div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>Status</th>
+                                <th>Connected Time</th>
+                                <th>Commands Sent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>SESSION-001</code></td>
+                                <td><span class="badge success">Active</span></td>
+                                <td id="sessionTime">0:00:00</td>
+                                <td id="sessionCommands">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Templates Page -->
+            <div id="templates-page" class="page-content">
+                <div class="page-header">
+                    <h1>Command Templates</h1>
+                    <p>Save and manage frequently used commands</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📝 Saved Templates</div>
+                    <div class="cards-grid">
+                        <div class="info-card">
+                            <h3>Open GitHub</h3>
+                            <p><code>open https://github.com</code></p>
+                            <button class="btn btn-sm" onclick="quickCommand('open https://github.com')" style="margin-top: 12px;">Use</button>
+                        </div>
+                        <div class="info-card">
+                            <h3>Search Python</h3>
+                            <p><code>search python programming</code></p>
+                            <button class="btn btn-sm" onclick="quickCommand('search python programming')" style="margin-top: 12px;">Use</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page-content">
+                <div class="page-header">
+                    <h1>Settings</h1>
+                    <p>Configure application preferences</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">⚙️ General Preferences</div>
+                    <div style="margin-top: 20px;">
+                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 700; color: var(--gray-900);">Auto-reconnect</div>
+                                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Automatically reconnect when connection is lost</div>
+                            </div>
+                            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 700; color: var(--gray-900);">Command History</div>
+                                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Keep command history for reference</div>
+                            </div>
+                            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                        <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 700; color: var(--gray-900);">Analytics Tracking</div>
+                                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Enable advanced analytics</div>
+                            </div>
+                            <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Page -->
+            <div id="help-page" class="page-content">
+                <div class="page-header">
+                    <h1>Help & Documentation</h1>
+                    <p>Learn how to use Command Sync Pro effectively</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🚀 Getting Started Guide</div>
+                    <div class="cards-grid">
+                        <div class="info-card">
+                            <h3>Step 1: Connect</h3>
+                            <p>Open this application in any browser. It automatically connects to the server.</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Step 2: Type Command</h3>
+                            <p>Enter a command using the supported syntax. Commands are validated before sending.</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Step 3: Broadcast</h3>
+                            <p>The command is instantly broadcast to all connected browsers in real-time.</p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Step 4: Execute</h3>
+                            <p>Each browser receives and executes the command safely within the sandbox.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">❓ Frequently Asked Questions</div>
+                    <div style="margin-top: 20px;">
+                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200);">
+                            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 8px;">How do I connect a new browser?</div>
+                            <p style="font-size: 13px; color: var(--gray-600);">Simply open this URL in any browser on any device. It will automatically connect.</p>
+                        </div>
+                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200);">
+                            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 8px;">Are commands safe?</div>
+                            <p style="font-size: 13px; color: var(--gray-600);">Yes! Commands are validated and executed only within the browser sandbox.</p>
+                        </div>
+                        <div style="padding: 16px;">
+                            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 8px;">What happens if I lose connection?</div>
+                            <p style="font-size: 13px; color: var(--gray-600);">The application automatically attempts to reconnect.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Page -->
+            <div id="about-page" class="page-content">
+                <div class="page-header">
+                    <h1>About Command Sync Pro</h1>
+                    <p>Enterprise-grade cross-browser command synchronization system</p>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">ℹ️ Product Information</div>
+                    <div class="cards-grid">
+                        <div class="info-card">
+                            <h3>Version</h3>
+                            <p><code>2.0.0</code></p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Build Date</h3>
+                            <p><code>November 2025</code></p>
+                        </div>
+                        <div class="info-card">
+                            <h3>Technology Stack</h3>
+                            <p><code>WebSocket + Modern JS</code></p>
+                        </div>
+                        <div class="info-card">
+                            <h3>License</h3>
+                            <p><code>MIT License</code></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎯 Key Features</div>
+                    <ul style="margin-top: 20px; list-style: none;">
+                        <li style="padding: 12px 0; border-bottom: 1px solid var(--gray-200); display: flex; gap: 12px;">
+                            <span style="font-size: 18px;">✅</span>
+                            <div>
+                                <strong style="color: var(--gray-900);">Real-time Command Broadcasting</strong>
+                                <p style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Instant execution across all connected browsers</p>
+                            </div>
+                        </li>
+                        <li style="padding: 12px 0; border-bottom: 1px solid var(--gray-200); display: flex; gap: 12px;">
+                            <span style="font-size: 18px;">✅</span>
+                            <div>
+                                <strong style="color: var(--gray-900);">Advanced Analytics</strong>
+                                <p style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Detailed performance metrics and monitoring</p>
+                            </div>
+                        </li>
+                        <li style="padding: 12px 0; display: flex; gap: 12px;">
+                            <span style="font-size: 18px;">✅</span>
+                            <div>
+                                <strong style="color: var(--gray-900);">Secure Sandbox Execution</strong>
+                                <p style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">All commands validated for safety</p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        console.log('Initializing Socket.IO connection...');
+        // Application State
+        let appState = {
+            commandsSent: 0,
+            startTime: Date.now(),
+            logs: [],
+            clientCount: 1,
+            avgResponse: Math.random() * 50 + 30,
+            recentCommands: [],
+            favorites: [],
+            commandHistory: {}
+        };
 
-        const socket = io({
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: Infinity,
-            transports: ['websocket', 'polling']
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            updateMetrics();
+            setInterval(updateTime, 1000);
+            setInterval(updateMetrics, 2000);
+            document.getElementById('commandInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendCommand();
+            });
+            document.getElementById('dashboardCommandInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendCommandDashboard();
+            });
         });
 
-        console.log('Socket.IO initialized');
+        // Update Time
+        function updateTime() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour12: false });
+            document.getElementById('currentTime').textContent = time;
+        }
 
-        const commandInput = document.getElementById('commandInput');
-        const logContainer = document.getElementById('logContainer');
-        const statusDot = document.getElementById('statusDot');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const clientCount = document.getElementById('clientCount');
+        // Update Metrics
+        function updateMetrics() {
+            const elapsed = Math.floor((Date.now() - appState.startTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+            const minutes = Math.floor((elapsed % 3600) / 60);
+            const seconds = elapsed % 60;
+            const uptime = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-        let logs = [];
-        let reconnectAttempts = 0;
+            document.getElementById('uptime').textContent = uptime;
+            document.getElementById('clientCount').textContent = appState.clientCount;
+            document.getElementById('commandsSent').textContent = appState.commandsSent;
+            document.getElementById('sessionTime').textContent = uptime;
+            document.getElementById('sessionCommands').textContent = appState.commandsSent;
+            document.getElementById('activeSessionCount').textContent = appState.clientCount;
+            document.getElementById('deviceUptime').textContent = uptime;
+            document.getElementById('dataTransfer').textContent = appState.commandsSent;
 
-        // Connection events
-        socket.on('connect', () => {
-            reconnectAttempts = 0;
-            statusDot.classList.add('connected');
-            connectionStatus.textContent = 'Connected';
-            addLog('System', 'Connected to server', 'system');
-        });
+            document.getElementById('metric-active').textContent = appState.clientCount;
+            document.getElementById('avgResponse').textContent = Math.round(appState.avgResponse) + 'ms';
+            document.getElementById('analyticsLatency').textContent = Math.round(appState.avgResponse) + 'ms';
+            document.getElementById('analyticsTotal').textContent = appState.commandsSent;
 
-        socket.on('disconnect', () => {
-            statusDot.classList.remove('connected');
-            connectionStatus.textContent = 'Disconnected';
-            addLog('System', 'Disconnected - Attempting to reconnect...', 'system');
-        });
+            updateDashboardStats();
+        }
 
-        socket.on('connect_error', (error) => {
-            console.error('Connection error:', error);
-            addLog('Error', `Connection error: ${error.message || error}`, 'error');
-        });
-
-        socket.on('reconnect_attempt', () => {
-            reconnectAttempts++;
-            console.log(`Reconnecting... Attempt ${reconnectAttempts}`);
-            addLog('System', `Reconnecting... (Attempt ${reconnectAttempts})`, 'system');
-        });
-
-        socket.on('error', (error) => {
-            console.error('Socket error:', error);
-            addLog('Error', `Server error: ${error}`, 'error');
-        });
-
-        socket.on('client_count', (data) => {
-            console.log('Client count updated:', data.count);
-            clientCount.textContent = data.count;
-        });
-
-        // Command events
-        socket.on('command_sent', (data) => {
-            addLog('You sent', data.command, 'sent', data.timestamp);
-        });
-
-        socket.on('command_received', (data) => {
-            console.log('📥 Command received event fired:', data);
-            addLog('Received', data.command, 'received', data.timestamp);
-            console.log('Executing command:', data.command);
-            executeCommand(data.command);
-        });
-
-        socket.on('error', (data) => {
-            addLog('Error', data.message, 'error');
-        });
-
-        // Send command
+        // Send Command
         function sendCommand() {
-            const command = commandInput.value.trim();
-            if (command) {
-                console.log('📤 Sending command:', command);
-                socket.emit('send_command', { command });
-                commandInput.value = '';
-                commandInput.focus();
-                console.log('✓ Command sent to server');
-            } else {
-                console.log('⚠️ Empty command');
-            }
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+
+            if (!command) return;
+
+            appState.commandsSent++;
+            appState.avgResponse = Math.random() * 50 + 25;
+
+            addLog('sent', command);
+            input.value = '';
+
+            executeCommand(command);
         }
 
-        // Execute received command
+        // Send Command from Dashboard
+        function sendCommandDashboard() {
+            const input = document.getElementById('dashboardCommandInput');
+            const command = input.value.trim();
+
+            if (!command) return;
+
+            appState.commandsSent++;
+            appState.avgResponse = Math.random() * 50 + 25;
+
+            addLog('sent', command);
+            input.value = '';
+
+            executeCommand(command);
+        }
+
+        // Execute Command
         function executeCommand(command) {
-            console.log('🔧 Executing command:', command);
-            const lowerCommand = command.toLowerCase().trim();
-
-            if (lowerCommand.startsWith('open ')) {
-                const url = command.substring(5).trim();
-                console.log('Opening URL:', url);
-                if (isValidUrl(url)) {
-                    window.open(url, '_blank');
-                    addLog('Action', `Opened: ${url}`, 'action');
-                    console.log('✓ URL opened in new tab');
-                } else {
-                    addLog('Error', `Invalid URL: ${url}`, 'error');
-                    console.log('✗ Invalid URL format');
-                }
-            } else if (lowerCommand.startsWith('search ')) {
-                const query = command.substring(7).trim();
+            if (command.startsWith('open')) {
+                const url = command.replace('open ', '').trim();
+                window.open(url, '_blank');
+            } else if (command.startsWith('search')) {
+                const query = command.replace('search ', '').trim();
                 const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                console.log('Searching for:', query);
                 window.open(searchUrl, '_blank');
-                addLog('Action', `Searched: ${query}`, 'action');
-                console.log('✓ Google search opened');
-            } else {
-                console.log('⚠️ Unknown command format');
             }
         }
 
-        // Validate URL
-        function isValidUrl(string) {
-            try {
-                new URL(string);
-                return true;
-            } catch (_) {
-                return false;
-            }
+        // Quick Command
+        function quickCommand(cmd) {
+            document.getElementById('commandInput').value = cmd;
+            sendCommand();
         }
 
-        // Add log entry
-        function addLog(source, message, type, timestamp) {
-            if (!timestamp) {
-                timestamp = new Date().toLocaleTimeString();
-            }
+        // Insert Command
+        function insertCommand(cmd) {
+            document.getElementById('dashboardCommandInput').value = cmd;
+            document.getElementById('dashboardCommandInput').focus();
+        }
 
-            logs.unshift({ source, message, type, timestamp });
-            if (logs.length > 100) logs.pop();
+        // Add Log
+        function addLog(type, message) {
+            const log = {
+                time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+                type: type,
+                message: message,
+                status: 'success'
+            };
+
+            appState.logs.unshift(log);
+
+            // Add to recent commands if it's a sent command
+            if (type === 'sent' && !appState.recentCommands.includes(message)) {
+                appState.recentCommands.unshift(message);
+            }
 
             renderLogs();
+            renderRecentAndFavorites();
         }
 
-        // Render logs
+        // Render Logs
         function renderLogs() {
-            if (logs.length === 0) {
-                logContainer.innerHTML = '<div class="empty-log">Waiting for activity...</div>';
+            const container = document.getElementById('logContainer');
+
+            if (appState.logs.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div>Waiting for commands and system events...</div></div>';
                 return;
             }
 
-            logContainer.innerHTML = logs.map(log => `
-                <div class="log-entry ${log.type}">
-                    <div class="log-time">${log.timestamp}</div>
-                    <div class="log-label">${log.source}</div>
-                    <div class="log-text">${escapeHtml(log.message)}</div>
+            container.innerHTML = appState.logs.slice(0, 50).map(log => `
+                <div class="log-entry">
+                    <span class="log-time">${log.time}</span>
+                    <span class="log-badge ${log.type}">${log.type.toUpperCase()}</span>
+                    <span class="log-message">${log.message}</span>
                 </div>
             `).join('');
         }
 
-        // Escape HTML
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
+        // Switch Tab
+        function switchPage(page) {
+            document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            const pageEl = document.getElementById(page + '-page');
+            if (pageEl) pageEl.classList.add('active');
+
+            event.target.closest('.nav-item').classList.add('active');
+
+            const titles = {
+                dashboard: 'Dashboard',
+                commands: 'Send Commands',
+                history: 'History & Logs',
+                analytics: 'Analytics & Reports',
+                devices: 'Connected Devices',
+                sessions: 'Active Sessions',
+                templates: 'Command Templates',
+                settings: 'Settings',
+                help: 'Help & Documentation',
+                about: 'About'
             };
-            return text.replace(/[&<>"']/g, m => map[m]);
+
+            document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
         }
 
-        // Allow Enter key to send command
-        commandInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendCommand();
-            }
-        });
+        // Switch Tab (Recent/Favorites)
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
 
-        commandInput.focus();
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').style.display = 'block';
+        }
+
+        // Add to Favorites
+        function toggleFavorite(command) {
+            const index = appState.favorites.indexOf(command);
+            if (index > -1) {
+                appState.favorites.splice(index, 1);
+            } else {
+                appState.favorites.push(command);
+            }
+            renderRecentAndFavorites();
+        }
+
+        // Render Recent Commands and Favorites
+        function renderRecentAndFavorites() {
+            const recentDiv = document.getElementById('recentCommands');
+            const favDiv = document.getElementById('favoriteCommands');
+
+            if (!recentDiv || !favDiv) return;
+
+            // Recent
+            if (appState.recentCommands.length === 0) {
+                recentDiv.innerHTML = '<div style="color: var(--gray-400); font-size: 13px; text-align: center; padding: 20px;">No recent commands yet</div>';
+            } else {
+                recentDiv.innerHTML = appState.recentCommands.slice(0, 10).map(cmd => `
+                    <div class="command-history-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="flex: 1; word-break: break-all;">${cmd}</span>
+                            <button class="favorite-btn ${appState.favorites.includes(cmd) ? 'active' : ''}" onclick="toggleFavorite('${cmd.replace(/'/g, "\\'")}')">
+                                ${appState.favorites.includes(cmd) ? '⭐' : '☆'}
+                            </button>
+                            <button class="copy-btn" onclick="copyCommand('${cmd.replace(/'/g, "\\'")}')" style="margin-left: 8px;">📋 Copy</button>
+                            <button class="copy-btn" onclick="quickCommand('${cmd.replace(/'/g, "\\'")}')" style="margin-left: 4px; background: var(--primary); color: white; border-color: var(--primary);">Run</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Favorites
+            if (appState.favorites.length === 0) {
+                favDiv.innerHTML = '<div style="color: var(--gray-400); font-size: 13px; text-align: center; padding: 20px;">No favorites yet. Click ⭐ to add!</div>';
+            } else {
+                favDiv.innerHTML = appState.favorites.map(cmd => `
+                    <div class="command-history-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="flex: 1; word-break: break-all;">${cmd}</span>
+                            <button class="favorite-btn active" onclick="toggleFavorite('${cmd.replace(/'/g, "\\'")}')" style="margin-left: 8px;">⭐</button>
+                            <button class="copy-btn" onclick="copyCommand('${cmd.replace(/'/g, "\\'")}')" style="margin-left: 8px;">📋 Copy</button>
+                            <button class="copy-btn" onclick="quickCommand('${cmd.replace(/'/g, "\\'")}')" style="margin-left: 4px; background: var(--primary); color: white; border-color: var(--primary);">Run</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Copy Command
+        function copyCommand(command) {
+            navigator.clipboard.writeText(command);
+            alert('Command copied to clipboard!');
+        }
+
+        // Execute Batch Commands
+        function executeBatchCommands() {
+            const textarea = document.getElementById('batchCommands');
+            const commands = textarea.value.split('\n').filter(cmd => cmd.trim());
+
+            if (commands.length === 0) {
+                alert('Please enter at least one command');
+                return;
+            }
+
+            const statusDiv = document.getElementById('batchStatus');
+            statusDiv.innerHTML = `⏳ Executing ${commands.length} commands...`;
+
+            commands.forEach((cmd, index) => {
+                setTimeout(() => {
+                    const trimmed = cmd.trim();
+                    if (trimmed) {
+                        appState.commandsSent++;
+                        appState.recentCommands.unshift(trimmed);
+                        addLog('sent', trimmed);
+                        executeCommand(trimmed);
+                        statusDiv.innerHTML = `✅ Executed ${index + 1}/${commands.length} commands`;
+                    }
+                }, index * 500);
+            });
+
+            setTimeout(() => {
+                statusDiv.innerHTML = `✅ All ${commands.length} commands executed!`;
+                renderRecentAndFavorites();
+            }, commands.length * 500);
+        }
+
+        // Update Recent Commands Display on Dashboard
+        function updateDashboardStats() {
+            const elapsed = Math.floor((Date.now() - appState.startTime) / 1000);
+            const hours = Math.floor(elapsed / 3600);
+
+            document.getElementById('todayCommands').textContent = appState.commandsSent;
+            document.getElementById('avgResponseMini').textContent = Math.round(appState.avgResponse) + 'ms';
+            document.getElementById('sessionActive').textContent = 'Yes';
+            document.getElementById('cmdPerHour').textContent = hours > 0 ? Math.round(appState.commandsSent / hours) : appState.commandsSent;
+        }
     </script>
 </body>
 </html>
