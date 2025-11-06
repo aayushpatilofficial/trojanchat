@@ -5,7 +5,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'render-secret-key-2024'
-
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
@@ -28,14 +27,16 @@ def health():
 @socketio.on('connect')
 def on_connect():
     client_id = request.sid
-    connected_clients[client_id] = True
+    connected_clients[client_id] = {
+        'connected': True,
+        'connected_at': datetime.now()
+    }
     join_room(BROADCAST_ROOM)
     total = len(connected_clients)
-
     print(f'✓ Client connected: {client_id} | Total: {total}')
 
     # Notify connecting client
-    emit('connection_response', {'message': 'Connected to server'})
+    emit('connection_response', {'message': 'Connected to server', 'client_id': client_id})
 
     # Broadcast to ALL clients in room
     socketio.emit('client_count', {'count': total}, room=BROADCAST_ROOM)
@@ -47,7 +48,6 @@ def on_disconnect():
         del connected_clients[client_id]
     leave_room(BROADCAST_ROOM)
     total = len(connected_clients)
-
     print(f'✗ Client disconnected: {client_id} | Total: {total}')
 
     # Notify all remaining clients
@@ -69,25 +69,54 @@ def on_command(data):
         print(f'   Sender: {sender_id}')
         print(f'   Total clients: {len(connected_clients)}')
 
-        # Send to SENDER too (so they see it execute)
+        # Parse command type
+        cmd_type = 'open' if command.startswith('open') else 'search' if command.startswith('search') else 'unknown'
+
+        # Extract command details
+        if cmd_type == 'open':
+            url = command.replace('open ', '').strip()
+            cmd_details = {
+                'type': 'open',
+                'url': url,
+                'command': command
+            }
+        elif cmd_type == 'search':
+            query = command.replace('search ', '').strip()
+            cmd_details = {
+                'type': 'search',
+                'query': query,
+                'command': command
+            }
+        else:
+            cmd_details = {
+                'type': 'unknown',
+                'command': command
+            }
+
+        # Send to SENDER first (so they see it in logs)
         socketio.emit('command_received', {
             'command': command,
             'timestamp': timestamp,
-            'sender': sender_id[:6]
+            'sender': sender_id[:8],
+            'cmd_type': cmd_type,
+            'details': cmd_details
         }, room=sender_id)
         print(f'   ✓ Sent to sender')
 
         # Send to each OTHER client
-        for client_id in connected_clients.keys():
+        for client_id in list(connected_clients.keys()):
             if client_id != sender_id:
                 print(f'   → Sending to client: {client_id}')
                 socketio.emit('command_received', {
                     'command': command,
                     'timestamp': timestamp,
-                    'sender': sender_id[:6]
+                    'sender': sender_id[:8],
+                    'cmd_type': cmd_type,
+                    'details': cmd_details
                 }, room=client_id)
 
-        print(f'   ✓ Sent to all other clients')
+        print(f'   ✓ Command broadcasted to all clients')
+
     except Exception as e:
         print(f'❌ Error: {e}')
         import traceback

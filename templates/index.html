@@ -1295,7 +1295,8 @@
             });
 
             socket.on('command_received', (data) => {
-                addLog('received', `Command: ${data.command}`);
+                console.log('📨 Command received:', data);
+                addLog('received', `${data.cmd_type.toUpperCase()}: ${data.command}`);
                 state.avgResponse = Math.random() * 50 + 25;
                 executeCmd(data.command);
                 updateStats();
