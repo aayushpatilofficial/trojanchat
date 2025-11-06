@@ -1,10 +1,11 @@
+import os
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
-socketio = SocketIO(app, cors_allowed_origins="*")
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+socketio = SocketIO(app, cors_allowed_origins="*", ping_timeout=60, ping_interval=25)
 
 # Store connected clients
 connected_clients = {}
@@ -12,6 +13,10 @@ connected_clients = {}
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/health')
+def health():
+    return {'status': 'ok'}, 200
 
 @socketio.on('connect')
 def handle_connect():
@@ -25,7 +30,6 @@ def handle_connect():
         'data': 'Connected to server',
         'client_count': len(connected_clients)
     })
-    # Broadcast updated client count to all
     socketio.emit('client_count', {'count': len(connected_clients)})
 
 @socketio.on('disconnect')
@@ -49,13 +53,11 @@ def handle_command(data):
 
     print(f"Command from {sender_id}: {command}")
 
-    # Emit back to sender for logging
     emit('command_sent', {
         'command': command,
         'timestamp': timestamp
     })
 
-    # Broadcast to all other clients
     socketio.emit('command_received', {
         'command': command,
         'timestamp': timestamp,
@@ -63,4 +65,5 @@ def handle_command(data):
     }, skip_sid=sender_id)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host='0.0.0.0', port=port, debug=False)
