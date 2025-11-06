@@ -1,73 +1,66 @@
-from flask import Flask, request, jsonify, render_template
-from flask_socketio import SocketIO, join_room
-import jwt
-import time
-import os
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
+from datetime import datetime
 
-# Config
-SECRET = os.environ.get('SECRET_KEY', 'supersecretkey_demo_change')
-PORT = int(os.environ.get('PORT', 5000))
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key-here'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
-app.config['SECRET_KEY'] = SECRET
-socketio = SocketIO(app, cors_allowed_origins='*')
-
-# Whitelisted commands
-WHITELIST = ['ping', 'collect_info', 'show_alert', 'open_website', 'google_search']
-clients = {}  # sid -> {device_id, groups}
-audit = []
+# Store connected clients
+connected_clients = {}
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/send_command', methods=['POST'])
-def send_command():
-    data = request.get_json() or {}
-    command = data.get('command')
-    room = data.get('room', 'all')
-    payload = data.get('payload', {})
-
-    if command not in WHITELIST:
-        return jsonify({'error': 'command not allowed'}), 400
-
-    cmd_payload = {'command': command, 'payload': payload, 'ts': int(time.time())}
-    token = jwt.encode(cmd_payload, SECRET, algorithm='HS256')
-
-    # emit command to devices in room
-    socketio.emit('command', {'command': command, 'payload': payload, 'token': token}, room=room)
-
-    # log audit
-    audit.append({'command': command, 'room': room, 'payload': payload, 'ts': time.time()})
-    return jsonify({'ok': True, 'issued': cmd_payload})
-
-@app.route('/audit')
-def get_audit():
-    return jsonify(audit[-200:])
-
-# SocketIO events
 @socketio.on('connect')
-def on_connect():
-    print('Client connected:', request.sid)
-
-@socketio.on('register')
-def on_register(data):
-    device_id = data.get('device_id')
-    groups = data.get('groups', [])
-    clients[request.sid] = {'device_id': device_id, 'groups': groups}
-    for g in groups:
-        join_room(g)
-    print(f'Device registered: {device_id}, groups={groups}')
-
-@socketio.on('command_result')
-def on_result(data):
-    print('Result from device:', data)
-    audit.append({'result': data, 'ts': time.time()})
+def handle_connect():
+    client_id = request.sid
+    connected_clients[client_id] = {
+        'connected_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'ip': request.remote_addr
+    }
+    print(f"Client connected: {client_id}")
+    emit('connection_response', {
+        'data': 'Connected to server',
+        'client_count': len(connected_clients)
+    })
+    # Broadcast updated client count to all
+    socketio.emit('client_count', {'count': len(connected_clients)})
 
 @socketio.on('disconnect')
-def on_disconnect():
-    print('Client disconnected:', request.sid)
-    clients.pop(request.sid, None)
+def handle_disconnect():
+    client_id = request.sid
+    if client_id in connected_clients:
+        del connected_clients[client_id]
+    print(f"Client disconnected: {client_id}")
+    socketio.emit('client_count', {'count': len(connected_clients)})
+
+@socketio.on('send_command')
+def handle_command(data):
+    command = data.get('command', '').strip()
+    sender_id = request.sid
+
+    if not command:
+        emit('error', {'message': 'Command cannot be empty'})
+        return
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    print(f"Command from {sender_id}: {command}")
+
+    # Emit back to sender for logging
+    emit('command_sent', {
+        'command': command,
+        'timestamp': timestamp
+    })
+
+    # Broadcast to all other clients
+    socketio.emit('command_received', {
+        'command': command,
+        'timestamp': timestamp,
+        'sender': sender_id[:8]
+    }, skip_sid=sender_id)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=PORT)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
