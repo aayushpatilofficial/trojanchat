@@ -319,8 +319,9 @@
         });
 
         socket.on('command_received', (data) => {
-            console.log('Command received event:', data);
+            console.log('📥 Command received event fired:', data);
             addLog('Received', data.command, 'received', data.timestamp);
+            console.log('Executing command:', data.command);
             executeCommand(data.command);
         });
 
@@ -332,32 +333,41 @@
         function sendCommand() {
             const command = commandInput.value.trim();
             if (command) {
-                console.log('Sending command:', command);
+                console.log('📤 Sending command:', command);
                 socket.emit('send_command', { command });
                 commandInput.value = '';
                 commandInput.focus();
+                console.log('✓ Command sent to server');
             } else {
-                console.log('Command is empty');
+                console.log('⚠️ Empty command');
             }
         }
 
         // Execute received command
         function executeCommand(command) {
+            console.log('🔧 Executing command:', command);
             const lowerCommand = command.toLowerCase().trim();
 
             if (lowerCommand.startsWith('open ')) {
                 const url = command.substring(5).trim();
+                console.log('Opening URL:', url);
                 if (isValidUrl(url)) {
                     window.open(url, '_blank');
                     addLog('Action', `Opened: ${url}`, 'action');
+                    console.log('✓ URL opened in new tab');
                 } else {
                     addLog('Error', `Invalid URL: ${url}`, 'error');
+                    console.log('✗ Invalid URL format');
                 }
             } else if (lowerCommand.startsWith('search ')) {
                 const query = command.substring(7).trim();
                 const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                console.log('Searching for:', query);
                 window.open(searchUrl, '_blank');
                 addLog('Action', `Searched: ${query}`, 'action');
+                console.log('✓ Google search opened');
+            } else {
+                console.log('⚠️ Unknown command format');
             }
         }
 

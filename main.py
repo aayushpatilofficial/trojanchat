@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from datetime import datetime
 
 app = Flask(__name__)
@@ -15,6 +15,7 @@ socketio = SocketIO(
 )
 
 connected_clients = {}
+BROADCAST_ROOM = 'broadcast_room'
 
 @app.route('/')
 def index():
@@ -25,9 +26,10 @@ def health():
     return {'status': 'ok'}, 200
 
 @socketio.on('connect')
-def on_connect(auth):
+def on_connect():
     client_id = request.sid
     connected_clients[client_id] = True
+    join_room(BROADCAST_ROOM)
     total = len(connected_clients)
 
     print(f'✓ Client connected: {client_id} | Total: {total}')
@@ -35,51 +37,60 @@ def on_connect(auth):
     # Notify connecting client
     emit('connection_response', {'message': 'Connected to server'})
 
-    # Send to ALL clients using socketio.emit (works with eventlet)
-    for cid in connected_clients.keys():
-        socketio.emit('client_count', {'count': total}, to=cid)
+    # Broadcast to ALL clients in room
+    socketio.emit('client_count', {'count': total}, room=BROADCAST_ROOM)
 
 @socketio.on('disconnect')
-def on_disconnect(auth):
+def on_disconnect():
     client_id = request.sid
     if client_id in connected_clients:
         del connected_clients[client_id]
+    leave_room(BROADCAST_ROOM)
     total = len(connected_clients)
 
     print(f'✗ Client disconnected: {client_id} | Total: {total}')
 
     # Notify all remaining clients
-    for cid in connected_clients.keys():
-        socketio.emit('client_count', {'count': total}, to=cid)
+    if connected_clients:
+        socketio.emit('client_count', {'count': total}, room=BROADCAST_ROOM)
 
 @socketio.on('send_command')
-def on_command(data, auth):
+def on_command(data):
     try:
         command = data.get('command', '').strip()
         sender_id = request.sid
         timestamp = datetime.now().strftime('%H:%M:%S')
 
         if not command:
+            print('⚠️ Empty command received')
             return
 
-        print(f'📤 Command: {command}')
+        print(f'📤 Command received: {command}')
+        print(f'   Sender: {sender_id}')
+        print(f'   Total clients: {len(connected_clients)}')
 
         # Confirm to sender
         emit('command_sent', {
             'command': command,
             'timestamp': timestamp
         })
+        print(f'   ✓ Sent confirmation to sender')
 
-        # Send to all OTHER clients
-        for cid in connected_clients.keys():
-            if cid != sender_id:
+        # Send to each OTHER client individually
+        for client_id in connected_clients.keys():
+            if client_id != sender_id:
+                print(f'   → Sending to client: {client_id}')
                 socketio.emit('command_received', {
                     'command': command,
                     'timestamp': timestamp,
                     'sender': sender_id[:6]
-                }, to=cid)
+                }, room=client_id)
+
+        print(f'   ✓ Sent to all other clients')
     except Exception as e:
-        print(f'Error: {e}')
+        print(f'❌ Error: {e}')
+        import traceback
+        traceback.print_exc()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
