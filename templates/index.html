@@ -1988,11 +1988,28 @@
             commandsSent: 0,
             startTime: Date.now(),
             logs: [],
-            clientCount: 10,
+            clientCount: 1,
             avgResponse: Math.random() * 50 + 30,
             recentCommands: [],
             favorites: [],
+            broadcastChannel: null,
         };
+
+        // Initialize Broadcast Channel for multi-tab communication
+        try {
+            appState.broadcastChannel = new BroadcastChannel('neura_sync_channel');
+            appState.broadcastChannel.onmessage = (event) => {
+                const { type, command, sender } = event.data;
+                if (type === 'command' && sender !== 'self') {
+                    executeCommand(command);
+                    addLog('received', `Browser: Executed "${command}"`);
+                } else if (type === 'ping') {
+                    appState.broadcastChannel.postMessage({ type: 'pong', sender: 'self' });
+                }
+            };
+        } catch (e) {
+            console.log('BroadcastChannel not supported');
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             updateTime();
@@ -2066,23 +2083,21 @@
         }
 
         function executeCommand(command) {
-            // Simulate execution on all connected browsers with proper log updates
-            for (let i = 0; i < appState.clientCount; i++) {
-                setTimeout(() => {
-                    const browserNum = i + 1;
-                    if (command.startsWith('open')) {
-                        const url = command.replace('open ', '').trim();
-                        addLog('received', `Browser ${browserNum} opened: ${url}`);
-                        if (i === 0) window.open(url, '_blank'); // Open in current browser only
-                    } else if (command.startsWith('search')) {
-                        const query = command.replace('search ', '').trim();
-                        addLog('received', `Browser ${browserNum} searched: "${query}"`);
-                        if (i === 0) {
-                            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                            window.open(searchUrl, '_blank');
-                        }
-                    }
-                }, i * 200);
+            // Execute on current browser first
+            if (command.startsWith('open')) {
+                const url = command.replace('open ', '').trim();
+                // Validate URL
+                if (!url.startsWith('http')) {
+                    alert('Please use full URL like https://example.com');
+                    return;
+                }
+                window.open(url, '_blank');
+                addLog('executed', `Opened: ${url}`);
+            } else if (command.startsWith('search')) {
+                const query = command.replace('search ', '').trim();
+                const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                window.open(searchUrl, '_blank');
+                addLog('executed', `Searched: "${query}"`);
             }
         }
 
