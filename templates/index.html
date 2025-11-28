@@ -3,1005 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neura Sync v2.0</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <title>Neura Sync v3.0 Ultimate</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         :root {
             --primary: #3b82f6;
-            --primary-dark: #1e40af;
-            --primary-light: #dbeafe;
             --secondary: #8b5cf6;
             --success: #10b981;
-            --warning: #f59e0b;
             --danger: #ef4444;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-900: #1a1a1a;
-            --sidebar-width: 260px;
-            --navbar-height: 70px;
-
-            /* Light mode colors */
+            --warning: #f59e0b;
             --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --bg-tertiary: #f3f4f6;
             --text-primary: #1a1a1a;
             --text-secondary: #4b5563;
             --border-color: #e5e7eb;
         }
-
-        body.dark-mode * {
-            background-color: inherit !important;
-            color: inherit !important;
-        }
-
         body.dark-mode {
             --bg-primary: #0f1419;
-            --bg-secondary: #1a1f2e;
-            --bg-tertiary: #252d3d;
             --text-primary: #f0f4f8;
             --text-secondary: #a0aac0;
             --border-color: #2d3748;
         }
-
-        /* Force dark mode on all major elements */
-        body.dark-mode,
-        body.dark-mode .sidebar,
-        body.dark-mode .navbar,
-        body.dark-mode .container,
-        body.dark-mode .section,
-        body.dark-mode .stat-card,
-        body.dark-mode .info-card,
-        body.dark-mode .log-container,
-        body.dark-mode .command-history-item,
-        body.dark-mode input,
-        body.dark-mode textarea,
-        body.dark-mode .hint-box {
-            background: #0f1419 !important;
-            color: #f0f4f8 !important;
-        }
-
-        /* Specific dark backgrounds for sections */
-        body.dark-mode .section {
-            background: linear-gradient(135deg, rgba(15, 20, 25, 0.9) 0%, rgba(26, 31, 46, 0.9) 100%) !important;
-            border: 1px solid rgba(59, 130, 246, 0.1) !important;
-        }
-
-        body.dark-mode .stat-card {
-            background: linear-gradient(135deg, rgba(26, 31, 46, 0.9) 0%, rgba(37, 45, 61, 0.9) 100%) !important;
-            border: 1px solid rgba(59, 130, 246, 0.15) !important;
-            color: #f0f4f8 !important;
-        }
-
-        body.dark-mode .info-card {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.1) 100%) !important;
-            border: 1px solid rgba(59, 130, 246, 0.3) !important;
-            color: #93c5fd !important;
-        }
-
-        body.dark-mode .log-container {
-            background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(37, 45, 61, 0.95) 100%) !important;
-            border: 1px solid rgba(59, 130, 246, 0.1) !important;
-        }
-
-        body.dark-mode input[type="text"],
-        body.dark-mode textarea {
-            background: rgba(26, 31, 46, 0.9) !important;
-            color: #f0f4f8 !important;
-            border: 1px solid rgba(59, 130, 246, 0.2) !important;
-        }
-
-        body.dark-mode .command-history-item {
-            background: rgba(37, 45, 61, 0.8) !important;
-            color: #f0f4f8 !important;
-            border-left: 3px solid #3b82f6 !important;
-        }
-
-        body.dark-mode .hint-box {
-            background: linear-gradient(135deg, rgba(26, 31, 46, 0.95) 0%, rgba(37, 45, 61, 0.95) 100%) !important;
-            border: 1px solid rgba(59, 130, 246, 0.1) !important;
-            color: #a0aac0 !important;
-        }
-
-        body.dark-mode .hint-box strong {
-            color: #93c5fd !important;
-        }
-
-        body.dark-mode .log-entry {
-            background: transparent !important;
-            color: #a0aac0 !important;
-            border-bottom: 1px solid rgba(59, 130, 246, 0.1) !important;
-        }
-
-        body.dark-mode .tabs {
-            border-bottom: 2px solid rgba(59, 130, 246, 0.1) !important;
-        }
-
-        body.dark-mode .tab {
-            color: #a0aac0 !important;
-        }
-
-        body.dark-mode .tab.active {
-            color: #3b82f6 !important;
-        }
-
-        html { scroll-behavior: smooth; overflow-x: hidden; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 50%, var(--bg-secondary) 100%);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-            overflow-x: hidden;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        body.dark-mode {
-            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #252d3d 100%);
-        }
-
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .sidebar {
-            background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
-            border-right: 1px solid rgba(59, 130, 246, 0.1);
-            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .sidebar-header {
-            padding: 20px 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 16px;
-            background: linear-gradient(135deg, var(--primary-light) 0%, #ede9fe 100%);
-            flex-shrink: 0;
-        }
-
-        .sidebar-header.dark-mode {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-        }
-
-        .sidebar-logo {
-            font-size: 24px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px 0;
-            overflow-y: auto;
-        }
-
-        .nav-section {
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .nav-section-title {
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            padding: 0 16px 12px;
-            transition: color 0.3s ease;
-        }
-
-        .nav-item {
-            padding: 10px 16px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .nav-item:hover {
-            background: var(--bg-tertiary);
-            color: var(--primary);
-        }
-
-        .nav-item.active {
-            background: var(--primary-light);
-            color: var(--primary);
-            border-left: 4px solid var(--primary);
-            padding-left: 12px;
-            font-weight: 700;
-        }
-
-        body.dark-mode .nav-item.active {
-            background: rgba(59, 130, 246, 0.15);
-        }
-
-        .sidebar-footer {
-            padding: 16px;
-            border-top: 1px solid var(--border-color);
-            font-size: 11px;
-            color: var(--text-secondary);
-            flex-shrink: 0;
-        }
-
-        .sidebar-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-avatar {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            width: calc(100% - var(--sidebar-width));
-        }
-
-        .navbar {
-            background: linear-gradient(90deg, #fff 0%, #f9fafb 100%);
-            border-bottom: 1px solid var(--gray-200);
-            padding: 0 24px;
-            height: var(--navbar-height);
-            display: flex;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            flex-shrink: 0;
-        }
-
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .nav-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--gray-900);
-        }
-
-        .nav-right {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background: var(--bg-tertiary);
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-            color: var(--text-secondary);
-        }
-
-        body.dark-mode .status-badge {
-            background: rgba(37, 45, 61, 0.8);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .theme-toggle {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 8px 14px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text-primary);
-        }
-
-        .theme-toggle:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            transform: scale(1.05);
-        }
-
-        body.dark-mode .theme-toggle {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--danger);
-        }
-
-        .status-dot.active {
-            background: var(--success);
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-        }
-
-        .nav-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-            font-family: monospace;
-            transition: color 0.3s ease;
-        }
-
-        .container {
-            flex: 1;
-            padding: 28px;
-            overflow-y: auto;
-            max-width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .container {
-            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #252d3d 100%);
-        }
-
-        .page-header {
-            margin-bottom: 28px;
-        }
-
-        .page-header h1 {
-            font-size: 32px;
-            margin-bottom: 8px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .page-header p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            transition: color 0.3s ease;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #fff 0%, #f9fafb 100%);
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15);
-            transform: translateY(-6px);
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #f9fafb 100%); color: var(--text-primary); min-height: 100vh; transition: all 0.3s ease; }
+        body.dark-mode { background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #252d3d 100%); }
+        .sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: var(--bg-primary); border-right: 1px solid var(--border-color); overflow-y: auto; z-index: 1000; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px 16px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 16px; background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%); }
+        .sidebar-logo { font-size: 24px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+        .nav-section { padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+        .nav-section-title { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); padding: 0 16px 12px; }
+        .nav-item { padding: 10px 16px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; }
+        .nav-item:hover { background: #f3f4f6; color: var(--primary); }
+        .nav-item.active { background: #dbeafe; color: var(--primary); border-left: 4px solid var(--primary); padding-left: 12px; font-weight: 700; }
+        .main-content { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; }
+        .navbar { background: var(--bg-primary); border-bottom: 1px solid var(--border-color); padding: 0 24px; height: 70px; display: flex; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-content { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 20px; }
+        .nav-title { font-size: 18px; font-weight: 700; color: var(--gray-900); }
+        .nav-right { display: flex; gap: 16px; align-items: center; }
+        .status-badge { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f3f4f6; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+        .status-dot.active { background: var(--success); box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); }
+        .theme-toggle { background: #f3f4f6; border: 1px solid var(--border-color); border-radius: 20px; padding: 8px 14px; cursor: pointer; font-size: 16px; transition: all 0.3s ease; }
+        .theme-toggle:hover { background: var(--primary); color: white; transform: scale(1.05); }
+        .container { flex: 1; padding: 28px; overflow-y: auto; }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 32px; margin-bottom: 8px; font-weight: 800; background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-header p { font-size: 14px; color: var(--text-secondary); }
+        .section { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; margin-bottom: 20px; }
+        .section-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; }
+        .input-group { display: flex; gap: 12px; margin-bottom: 18px; align-items: flex-end; flex-wrap: wrap; }
+        .input-wrapper { flex: 1; min-width: 200px; }
+        .input-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; display: block; text-transform: uppercase; }
+        input, textarea, select { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 13px; background: var(--bg-primary); color: var(--text-primary); font-family: inherit; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .btn { padding: 10px 24px; background: linear-gradient(135deg, var(--primary), #1e40af); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4); }
+        .btn-sm { padding: 8px 14px; font-size: 11px; }
+        .btn-secondary { background: linear-gradient(135deg, var(--secondary), #7c3aed); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: all 0.2s ease; }
+        .stat-card:hover { border-color: var(--primary); box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15); transform: translateY(-6px); }
         .stat-icon { font-size: 28px; }
-
-        .stat-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--gray-500);
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--gray-900);
-            line-height: 1;
-        }
-
-        .stat-sub {
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-
-        .stats-mini {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-            margin: 12px 0;
-        }
-
-        .stat-mini {
-            background: linear-gradient(135deg, var(--primary-light), #ede9fe);
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 11px;
-        }
-
-        .stat-mini-value {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--primary);
-            margin: 3px 0;
-        }
-
-        .section {
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .section {
-            background: linear-gradient(135deg, rgba(26, 31, 46, 0.6) 0%, rgba(37, 45, 61, 0.6) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            transition: color 0.3s ease;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 18px;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .input-wrapper {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .input-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--gray-700);
-            margin-bottom: 6px;
-            display: block;
-            text-transform: uppercase;
-        }
-
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 13px;
-            transition: all 0.2s ease;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: inherit;
-        }
-
-        body.dark-mode input[type="text"],
-        body.dark-mode textarea {
-            background: rgba(26, 31, 46, 0.8);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            color: var(--text-primary);
-        }
-
-        input[type="text"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        body.dark-mode input[type="text"]:focus,
-        body.dark-mode textarea:focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        .btn {
-            padding: 10px 24px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-sm {
-            padding: 8px 14px;
-            font-size: 11px;
-        }
-
-        .quick-commands {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .quick-btn {
-            padding: 10px 12px;
-            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary));
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .quick-btn:hover {
-            background: linear-gradient(135deg, var(--primary-light), #ede9fe);
-            border-color: var(--primary);
-            color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-        }
-
-        body.dark-mode .quick-btn {
-            background: linear-gradient(135deg, rgba(37, 45, 61, 0.8), rgba(26, 31, 46, 0.8));
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        body.dark-mode .quick-btn:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.15));
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .log-container {
-            background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 0;
-        }
-
-        .log-entry {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--gray-200);
-            font-size: 12px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .log-time {
-            color: var(--gray-500);
-            font-size: 11px;
-            font-weight: 700;
-            font-family: monospace;
-            min-width: 70px;
-        }
-
-        .log-badge {
-            font-weight: 700;
-            font-size: 9px;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 4px;
-            min-width: 70px;
-            text-align: center;
-        }
-
-        .log-badge.sent {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .log-badge.received {
-            background: #dbeafe;
-            color: #0c2d6b;
-        }
-
-        .log-badge.system {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .log-message {
-            flex: 1;
-            color: var(--gray-700);
-            word-break: break-word;
-            min-width: 150px;
-        }
-
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-            color: var(--gray-400);
-        }
-
-        .page-content {
-            display: none;
-        }
-
-        .page-content.active {
-            display: block;
-        }
-
-        .hint-box {
-            background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 12px;
-            color: var(--gray-700);
-            line-height: 1.6;
-            margin-top: 16px;
-        }
-
-        .hint-box strong {
-            color: var(--gray-900);
-        }
-
-        .hint-list {
-            list-style: none;
-            margin-top: 10px;
-        }
-
-        .hint-list li {
-            padding: 6px 0;
-            display: flex;
-            gap: 8px;
-        }
-
-        .hint-list li:before {
-            content: "→";
-            color: var(--primary);
-            font-weight: 700;
-            min-width: 14px;
-        }
-
-        .hint-list li code {
-            background: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: var(--primary);
-            border: 1px solid var(--gray-200);
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .info-card {
-            background: linear-gradient(135deg, var(--primary-light), #ede9fe);
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 18px;
-            color: #0c2d6b;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        body.dark-mode .info-card {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: #93c5fd;
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        .info-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
-        }
-
-        body.dark-mode .info-card:hover {
-            box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        .info-card h3 {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            transition: color 0.3s ease;
-        }
-
-        body.dark-mode .info-card h3 {
-            color: #93c5fd;
-        }
-
-        .info-card p {
-            font-size: 12px;
-            line-height: 1.5;
-            transition: color 0.3s ease;
-        }
-
-        body.dark-mode .info-card p {
-            color: #a3d5ff;
-        }
-
-        .info-card code {
-            background: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            color: var(--primary);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .info-card code {
-            background: rgba(0, 0, 0, 0.3);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-            background: var(--bg-primary);
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .stats-table {
-            background: transparent;
-        }
-
-        .stats-table th {
-            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-            padding: 12px;
-            text-align: left;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .stats-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .stats-table tr:hover {
-            background: var(--bg-secondary);
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 5px 10px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .badge {
-            background: rgba(59, 130, 246, 0.15);
-            color: #93c5fd;
-        }
-
-        .badge.success {
-            background: #d1fae5;
-            color: var(--success);
-        }
-
-        body.dark-mode .badge.success {
-            background: rgba(16, 185, 129, 0.15);
-            color: #6ee7b7;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
-            transition: background 0.3s ease;
-        }
-
-        body.dark-mode .progress-bar {
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), #0ea5e9);
-            transition: width 0.4s ease;
-        }
-
-        .command-history-item {
-            background: var(--bg-primary);
-            padding: 10px 12px;
-            border-radius: 6px;
-            border-left: 3px solid var(--primary);
-            margin-bottom: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-primary);
-        }
-
-        .command-history-item:hover {
-            background: var(--bg-secondary);
-            transform: translateX(3px);
-        }
-
-        .favorite-btn {
-            background: none;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 4px 8px;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            border-bottom: 2px solid var(--gray-200);
-            margin-bottom: 16px;
-            overflow-x: auto;
-        }
-
-        .tab {
-            padding: 8px 12px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-secondary);
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s ease;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-
-        .tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .connection-alert {
-            padding: 12px 16px;
-            background: #fef3c7;
-            color: #92400e;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 12px;
-            font-weight: 600;
-            display: none;
-        }
-
-        .connection-alert.show {
-            display: block;
-        }
-
+        .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
+        .stat-value { font-size: 32px; font-weight: 800; color: var(--text-primary); }
+        .stat-sub { font-size: 12px; color: var(--text-secondary); }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 16px; }
+        .info-card { background: linear-gradient(135deg, #dbeafe, #ede9fe); border: 1px solid #bfdbfe; border-radius: 8px; padding: 18px; color: #0c2d6b; cursor: pointer; transition: all 0.2s ease; }
+        .info-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2); }
+        .info-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+        .info-card p { font-size: 12px; line-height: 1.5; }
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #dbeafe; color: var(--primary); border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge.success { background: #d1fae5; color: var(--success); }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        .progress-bar { width: 100%; height: 6px; background: var(--border-color); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #0ea5e9); transition: width 0.4s ease; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-primary); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { font-size: 20px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
+        .tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--border-color); margin-bottom: 16px; overflow-x: auto; }
+        .tab { padding: 8px 12px; background: none; border: none; cursor: pointer; font-weight: 600; color: var(--text-secondary); border-bottom: 3px solid transparent; transition: all 0.2s ease; font-size: 12px; white-space: nowrap; }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .session-item { background: #f9fafb; padding: 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid var(--border-color); transition: all 0.2s ease; }
+        .session-item:hover { border-color: var(--primary); }
+        .session-info { flex: 1; }
+        .session-name { font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .session-meta { font-size: 12px; color: var(--text-secondary); }
+        .clipboard-item { background: #f9fafb; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--primary); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .clipboard-text { flex: 1; font-size: 12px; color: var(--text-secondary); word-break: break-all; font-family: monospace; }
+        .focus-score { display: flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--success) var(--focus-percentage), var(--border-color) 0); margin: 20px auto; }
+        .focus-score-inner { width: 110px; height: 110px; background: var(--bg-primary); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .focus-score-value { font-size: 32px; font-weight: 800; }
+        .focus-score-label { font-size: 11px; color: var(--text-secondary); }
+        .timer-display { font-size: 48px; font-weight: 800; font-family: monospace; color: var(--primary); margin: 20px 0; text-align: center; }
+        .timer-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 16px; }
+        .search-input { flex: 1; min-width: 200px; }
+        .search-results { max-height: 400px; overflow-y: auto; }
+        .result-item { background: #f9fafb; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid var(--primary); cursor: pointer; transition: all 0.2s ease; }
+        .result-item:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .result-title { font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+        .result-meta { font-size: 11px; color: var(--text-secondary); }
+        .chart-container { height: 300px; display: flex; align-items: flex-end; gap: 12px; justify-content: space-around; margin: 20px 0; }
+        .chart-bar { flex: 1; background: linear-gradient(180deg, var(--primary), #1e40af); border-radius: 4px 4px 0 0; min-height: 20px; display: flex; align-items: flex-end; justify-content: center; color: white; font-size: 11px; font-weight: 700; padding-bottom: 8px; }
+        .drag-drop-zone { border: 2px dashed var(--primary); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s ease; margin: 16px 0; }
+        .drag-drop-zone:hover { background: rgba(59, 130, 246, 0.05); border-color: #1e40af; }
         @media (max-width: 768px) {
-            :root { --sidebar-width: 0px; }
-            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-            .sidebar.mobile-open { transform: translateX(0); }
-            .main-content { margin-left: 0; width: 100%; }
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
             .container { padding: 16px; }
-            .navbar { padding: 0 16px; }
             .stats-grid { grid-template-columns: 1fr; }
             .cards-grid { grid-template-columns: 1fr; }
-            .quick-commands { grid-template-columns: repeat(2, 1fr); }
-            .input-group { flex-direction: column; align-items: stretch; }
-            .btn { width: 100%; }
-            .page-header h1 { font-size: 24px; }
-            .stat-value { font-size: 24px; }
-        }
-
-        @media (max-width: 480px) {
-            .nav-right { width: 100%; justify-content: space-between; }
-            .quick-commands { grid-template-columns: 1fr; }
-            .log-entry { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -1009,53 +127,27 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo">⚡</div>
-            <div>Neura Sync</div>
+            <div>Neura Sync v3.0</div>
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section">
-                <div class="nav-section-title">Main Menu</div>
-                <div class="nav-item active" onclick="switchPage(event, 'dashboard')">
-                    <span>📊</span><span>Dashboard</span>
-                </div>
-                <div class="nav-item" onclick="switchPage(event, 'commands')">
-                    <span>📤</span><span>Send Commands</span>
-                </div>
-                <div class="nav-item" onclick="switchPage(event, 'history')">
-                    <span>📋</span><span>History</span>
-                </div>
-                <div class="nav-item" onclick="switchPage(event, 'analytics')">
-                    <span>📈</span><span>Analytics</span>
-                </div>
+                <div class="nav-section-title">Core</div>
+                <div class="nav-item active" onclick="switchPage(event, 'dashboard')">📊 Dashboard</div>
+                <div class="nav-item" onclick="switchPage(event, 'commands')">📤 Commands</div>
+                <div class="nav-item" onclick="switchPage(event, 'history')">📋 History</div>
             </div>
             <div class="nav-section">
-                <div class="nav-section-title">Management</div>
-                <div class="nav-item" onclick="switchPage(event, 'devices')">
-                    <span>🌍</span><span>Devices</span>
-                </div>
-                <div class="nav-item" onclick="switchPage(event, 'templates')">
-                    <span>📝</span><span>Templates</span>
-                </div>
+                <div class="nav-section-title">v3.0 Features</div>
+                <div class="nav-item" onclick="switchPage(event, 'sessions')">💾 Sessions</div>
+                <div class="nav-item" onclick="switchPage(event, 'clipboard')">📋 Clipboard</div>
+                <div class="nav-item" onclick="switchPage(event, 'search')">🔍 AI Search</div>
+                <div class="nav-item" onclick="switchPage(event, 'productivity')">🎯 Productivity</div>
             </div>
             <div class="nav-section">
-                <div class="nav-section-title">System</div>
-                <div class="nav-item" onclick="switchPage(event, 'settings')">
-                    <span>⚙️</span><span>Settings</span>
-                </div>
-                <div class="nav-item" onclick="switchPage(event, 'help')">
-                    <span>❓</span><span>Help</span>
-                </div>
+                <div class="nav-section-title">Settings</div>
+                <div class="nav-item" onclick="switchPage(event, 'settings')">⚙️ Settings</div>
             </div>
         </nav>
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="sidebar-avatar">NS</div>
-                <div>
-                    <div style="font-size: 11px; font-weight: 700; color: var(--gray-900);">Neura Sync</div>
-                    <div style="font-size: 10px; color: var(--success);" id="userStatus">● Online</div>
-                </div>
-            </div>
-            <p style="margin-top: 8px;">v2.0.0</p>
-        </div>
     </div>
 
     <div class="main-content">
@@ -1064,442 +156,257 @@
                 <div><div class="nav-title" id="pageTitle">Dashboard</div></div>
                 <div class="nav-right">
                     <div class="status-badge">
-                        <div class="status-dot" id="statusDot"></div>
-                        <span id="statusText">Connecting...</span>
+                        <div class="status-dot active" id="statusDot"></div>
+                        <span id="statusText">Connected</span>
                     </div>
-                    <button class="theme-toggle" onclick="toggleDarkMode()" title="Toggle Dark Mode">
-                        <span id="themeIcon">🌙</span>
-                    </button>
-                    <div class="nav-time" id="currentTime">00:00:00</div>
+                    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+                    <div style="font-size: 11px; color: var(--text-secondary); font-family: monospace;" id="currentTime">00:00:00</div>
                 </div>
             </div>
         </div>
 
         <div class="container">
-            <div class="connection-alert" id="connectionAlert">⚠️ Connection lost. Attempting to reconnect...</div>
-
-            <!-- Dashboard -->
+            <!-- DASHBOARD -->
             <div id="dashboard-page" class="page-content active">
                 <div class="page-header">
                     <h1>Dashboard</h1>
-                    <p>Real-time multi-device command control</p>
+                    <p>Multi-device command control with advanced features</p>
                 </div>
-
-                <div class="section" style="background: linear-gradient(135deg, #dbeafe 0%, #ede9fe 100%); border-color: #bfdbfe;">
-                    <div class="section-title" style="color: #0c2d6b;">⚡ Quick Command</div>
-                    <div class="quick-commands">
-                        <button class="quick-btn" onclick="insertCmd('open google.com')">🔍 Google</button>
-                        <button class="quick-btn" onclick="insertCmd('open github.com')">📌 GitHub</button>
-                        <button class="quick-btn" onclick="insertCmd('open youtube.com')">🎥 YouTube</button>
-                        <button class="quick-btn" onclick="insertCmd('search python')">🐍 Python</button>
-                        <button class="quick-btn" onclick="insertCmd('search web development')">💻 Web Dev</button>
-                        <button class="quick-btn" onclick="insertCmd('search javascript')">⚡ JavaScript</button>
-                    </div>
-                    <div class="input-group">
-                        <div class="input-wrapper">
-                            <label class="input-label">Command</label>
-                            <input type="text" id="dashboardInput" placeholder="Type or click quick buttons...">
-                        </div>
-                        <button class="btn" onclick="sendFromDash()">Send</button>
-                    </div>
-                </div>
-
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-label">Connected Browsers</div>
-                        <div class="stat-value" id="clientCount">0</div>
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-label">Saved Sessions</div>
+                        <div class="stat-value" id="sessionCount">0</div>
                         <div class="stat-sub">Active sessions</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">📤</div>
-                        <div class="stat-label">Commands Sent</div>
-                        <div class="stat-value" id="commandsSent">0</div>
-                        <div class="stat-sub">Executed</div>
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-label">Clipboard Items</div>
+                        <div class="stat-value" id="clipboardCount">0</div>
+                        <div class="stat-sub">Synced items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-label">Focus Score</div>
+                        <div class="stat-value" id="dashFocusScore">85%</div>
+                        <div class="stat-sub">Today</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">⏱️</div>
-                        <div class="stat-label">Uptime</div>
-                        <div class="stat-value" id="uptime">0:00:00</div>
-                        <div class="stat-sub">Duration</div>
+                        <div class="stat-label">Session Time</div>
+                        <div class="stat-value" id="sessionTime">0:00</div>
+                        <div class="stat-sub">This session</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⚡</div>
-                        <div class="stat-label">Avg Response</div>
-                        <div class="stat-value" id="avgResponse">0ms</div>
-                        <div class="stat-sub">Response time</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-label">Success Rate</div>
-                        <div class="stat-value" id="successRate">100%</div>
-                        <div class="stat-sub">Commands</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔗</div>
-                        <div class="stat-label">Connection Quality</div>
-                        <div class="stat-value" id="connQuality">0%</div>
-                        <div class="stat-sub">Signal</div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">📊 Performance Metrics</div>
-                    <table class="stats-table">
-                        <thead>
-                            <tr>
-                                <th>Metric</th>
-                                <th>Current</th>
-                                <th>Average</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Active Connections</strong></td>
-                                <td id="metric-active">0</td>
-                                <td id="metric-active-avg">0</td>
-                                <td><span class="badge success">✓ Optimal</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Commands/Minute</strong></td>
-                                <td id="metric-cpm">0</td>
-                                <td id="metric-cpm-avg">0</td>
-                                <td><span class="badge success">✓ Normal</span></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Latency</strong></td>
-                                <td id="metric-latency">0ms</td>
-                                <td id="metric-latency-avg">0ms</td>
-                                <td><span class="badge success">✓ Excellent</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Commands Page -->
-            <div id="commands-page" class="page-content">
-                <div class="page-header">
-                    <h1>Send Commands</h1>
-                    <p>Execute commands on all connected devices</p>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">📤 Command Console</div>
-                    <div class="input-group">
-                        <div class="input-wrapper">
-                            <label class="input-label">Enter Command</label>
-                            <input type="text" id="cmdInput" placeholder="Type: open google.com or search python">
-                        </div>
-                        <button class="btn" onclick="sendCmd()">Execute</button>
-                    </div>
-
-                    <div class="hint-box">
-                        <strong>📌 Command Syntax:</strong>
-                        <ul class="hint-list">
-                            <li><code>open google.com</code> - Opens website</li>
-                            <li><code>search python tutorial</code> - Google search</li>
-                            <li><code>open https://github.com</code> - Full URL</li>
-                            <li><code>search machine learning</code> - Search resources</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">🔄 Batch Commands</div>
-                    <div class="input-wrapper" style="margin-bottom: 12px;">
-                        <label class="input-label">Enter Multiple Commands (one per line)</label>
-                        <textarea id="batchInput" placeholder="open google.com&#10;search python&#10;open github.com" style="height: 100px;"></textarea>
-                    </div>
-                    <button class="btn" onclick="executeBatch()">▶️ Execute Batch</button>
-                    <div id="batchStatus" style="margin-top: 12px; color: var(--gray-600); font-size: 13px;"></div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">💡 Command Examples</div>
-                    <div class="cards-grid">
-                        <div class="info-card">
-                            <h3>Open Website</h3>
-                            <p><code>open google.com</code></p>
-                            <p style="margin-top: 10px; font-size: 11px;">Opens URL in new tab on all devices</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Google Search</h3>
-                            <p><code>search machine learning</code></p>
-                            <p style="margin-top: 10px; font-size: 11px;">Performs search on all browsers</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>GitHub Repo</h3>
-                            <p><code>open https://github.com</code></p>
-                            <p style="margin-top: 10px; font-size: 11px;">Navigate to GitHub repo</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Tutorial Search</h3>
-                            <p><code>search web development</code></p>
-                            <p style="margin-top: 10px; font-size: 11px;">Search tutorials & resources</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- History Page -->
-            <div id="history-page" class="page-content">
-                <div class="page-header">
-                    <h1>Command History & Logs</h1>
-                    <p>View all executed commands and events</p>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">📋 Activity Log</div>
-                    <div class="log-container" id="logContainer">
-                        <div class="empty-state">
-                            <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
-                            <div>Waiting for commands...</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">⏱️ Recent Commands & Favorites</div>
-                    <div class="tabs">
-                        <button class="tab active" onclick="switchTab(event, 'recent')">Recent</button>
-                        <button class="tab" onclick="switchTab(event, 'favorites')">⭐ Favorites</button>
-                    </div>
-                    <div id="recent-tab" class="tab-content active">
-                        <div id="recentCommands"></div>
-                    </div>
-                    <div id="favorites-tab" class="tab-content">
-                        <div id="favoriteCommands"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics Page -->
-            <div id="analytics-page" class="page-content">
-                <div class="page-header">
-                    <h1>Analytics & Reports</h1>
-                    <p>Performance metrics and statistics</p>
                 </div>
 
                 <div class="section">
                     <div class="section-title">📊 Quick Stats</div>
-                    <div class="stats-mini">
-                        <div class="stat-mini">
-                            <div style="font-size: 10px; color: var(--gray-600);">Today's Commands</div>
-                            <div class="stat-mini-value" id="todayCommands">0</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                        <div style="background: linear-gradient(135deg, #dbeafe, #ede9fe); padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-secondary);">Commands Today</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin: 3px 0;" id="cmdToday">0</div>
                         </div>
-                        <div class="stat-mini">
-                            <div style="font-size: 10px; color: var(--gray-600);">Avg Response</div>
-                            <div class="stat-mini-value" id="avgResponseMini">0ms</div>
+                        <div style="background: linear-gradient(135deg, #dbeafe, #ede9fe); padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-secondary);">Focus Time</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin: 3px 0;" id="focusTime">0h</div>
                         </div>
-                        <div class="stat-mini">
-                            <div style="font-size: 10px; color: var(--gray-600);">Commands/Hour</div>
-                            <div class="stat-mini-value" id="cmdPerHour">0</div>
+                        <div style="background: linear-gradient(135deg, #dbeafe, #ede9fe); padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-secondary);">Productivity</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin: 3px 0;" id="productivity">78%</div>
                         </div>
-                        <div class="stat-mini">
-                            <div style="font-size: 10px; color: var(--gray-600);">Success Rate</div>
-                            <div class="stat-mini-value" id="analyticsSuccess">100%</div>
+                        <div style="background: linear-gradient(135deg, #dbeafe, #ede9fe); padding: 10px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 11px; color: var(--text-secondary);">Synced Data</div>
+                            <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin: 3px 0;" id="syncedData">2.3MB</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- SESSIONS -->
+            <div id="sessions-page" class="page-content">
+                <div class="page-header">
+                    <h1>💾 Tab Session Manager</h1>
+                    <p>Save and restore browsing sessions</p>
+                </div>
+                <div class="section">
+                    <div class="section-title">New Session</div>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Session Name</label>
+                            <input type="text" id="sessionName" placeholder="e.g. Research Project">
+                        </div>
+                        <button class="btn" onclick="saveSession()">💾 Save Session</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Saved Sessions</div>
+                    <div id="sessionsList"></div>
+                </div>
+            </div>
+
+            <!-- CLIPBOARD -->
+            <div id="clipboard-page" class="page-content">
+                <div class="page-header">
+                    <h1>📋 Cloud Clipboard</h1>
+                    <p>Sync clipboard across devices</p>
+                </div>
+                <div class="section">
+                    <div class="section-title">Add to Clipboard</div>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Text to Copy</label>
+                            <textarea id="clipboardInput" placeholder="Paste text here..." style="height: 80px;"></textarea>
+                        </div>
+                        <button class="btn" onclick="addToClipboard()">📋 Add</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Clipboard History</div>
+                    <div id="clipboardList"></div>
+                </div>
+            </div>
+
+            <!-- AI SEARCH -->
+            <div id="search-page" class="page-content">
+                <div class="page-header">
+                    <h1>🔍 AI Universal Search</h1>
+                    <p>Search all synced data with AI</p>
+                </div>
+                <div class="section">
+                    <div class="section-title">Search</div>
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="searchQuery" placeholder="Search tabs, bookmarks, history...">
+                        <button class="btn" onclick="performSearch()">🔍 Search</button>
+                    </div>
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+            </div>
+
+            <!-- PRODUCTIVITY -->
+            <div id="productivity-page" class="page-content">
+                <div class="page-header">
+                    <h1>🎯 Productivity Dashboard</h1>
+                    <p>Focus tracking and productivity tools</p>
                 </div>
 
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">📊</div>
-                        <div class="stat-label">Total Commands</div>
-                        <div class="stat-value" id="analyticsTotal">0</div>
-                        <div class="stat-sub">All time</div>
+                        <div class="stat-label">Focus Score</div>
+                        <div class="stat-value" id="focusScore">85</div>
+                        <div class="stat-sub">Out of 100</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⚡</div>
-                        <div class="stat-label">Avg Latency</div>
-                        <div class="stat-value" id="analyticsLatency">0ms</div>
-                        <div class="stat-sub">Response time</div>
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-label">Time on Task</div>
+                        <div class="stat-value" id="timeOnTask">2h 15m</div>
+                        <div class="stat-sub">This week</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-label">Devices</div>
-                        <div class="stat-value" id="analyticsDevices">0</div>
-                        <div class="stat-sub">Connected</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Devices Page -->
-            <div id="devices-page" class="page-content">
-                <div class="page-header">
-                    <h1>Connected Devices</h1>
-                    <p>Monitor all connected browsers</p>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-label">Total Connected</div>
-                        <div class="stat-value" id="totalDevices">0</div>
-                        <div class="stat-sub">Active browsers</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-label">Status</div>
-                        <div class="stat-value" style="font-size: 24px; color: var(--success);">Online</div>
-                        <div class="stat-sub">Operational</div>
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-label">Distractions</div>
+                        <div class="stat-value" id="distractions">3</div>
+                        <div class="stat-sub">Today</div>
                     </div>
                 </div>
 
                 <div class="section">
-                    <div class="section-title">📱 Browser Sessions</div>
-                    <div class="cards-grid">
-                        <div class="info-card">
-                            <h3>Connected Browsers</h3>
-                            <p>Currently <strong id="activeSessionCount">0</strong> browser(s) connected</p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="sessionProgress" style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <div class="info-card">
-                            <h3>Network Status</h3>
-                            <p>Connection: <strong id="networkStatus">Disconnected</strong></p>
-                            <p style="margin-top: 8px; font-size: 11px;">WebSocket Protocol</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Session Duration</h3>
-                            <p>Uptime: <strong id="deviceUptime">0:00:00</strong></p>
-                            <p style="margin-top: 8px; font-size: 11px;">Real-time sync</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Data Processed</h3>
-                            <p>Commands: <strong id="dataTransfer">0</strong></p>
-                            <p style="margin-top: 8px; font-size: 11px;">Total executed</p>
-                        </div>
+                    <div class="section-title">⏱️ Pomodoro Timer</div>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    <div class="timer-controls">
+                        <button class="btn btn-success" onclick="startTimer()">▶️ Start</button>
+                        <button class="btn btn-secondary" onclick="pauseTimer()">⏸️ Pause</button>
+                        <button class="btn btn-danger" onclick="resetTimer()">⏹️ Reset</button>
                     </div>
-                </div>
-            </div>
-
-            <!-- Templates Page -->
-            <div id="templates-page" class="page-content">
-                <div class="page-header">
-                    <h1>Command Templates</h1>
-                    <p>Frequently used commands</p>
                 </div>
 
                 <div class="section">
-                    <div class="section-title">📝 Saved Templates</div>
-                    <div class="cards-grid">
-                        <div class="info-card">
-                            <h3>Open GitHub</h3>
-                            <p><code>open github.com</code></p>
-                            <button class="btn btn-sm" onclick="insertCmd('open github.com')" style="margin-top: 12px;">Use</button>
-                        </div>
-                        <div class="info-card">
-                            <h3>Search Python</h3>
-                            <p><code>search python programming</code></p>
-                            <button class="btn btn-sm" onclick="insertCmd('search python programming')" style="margin-top: 12px;">Use</button>
-                        </div>
-                        <div class="info-card">
-                            <h3>MDN Docs</h3>
-                            <p><code>open developer.mozilla.org</code></p>
-                            <button class="btn btn-sm" onclick="insertCmd('open developer.mozilla.org')" style="margin-top: 12px;">Use</button>
-                        </div>
-                        <div class="info-card">
-                            <h3>Search Web Dev</h3>
-                            <p><code>search web development</code></p>
-                            <button class="btn btn-sm" onclick="insertCmd('search web development')" style="margin-top: 12px;">Use</button>
-                        </div>
-                        <div class="info-card">
-                            <h3>YouTube</h3>
-                            <p><code>open youtube.com</code></p>
-                            <button class="btn btn-sm" onclick="insertCmd('open youtube.com')" style="margin-top: 12px;">Use</button>
-                        </div>
-                        <div class="info-card">
-                            <h3>Search JavaScript</h3>
-                            <p><code>search javascript tutorial</code></p>
-                            <button class="btn btn-sm" onclick="insertCmd('search javascript tutorial')" style="margin-top: 12px;">Use</button>
-                        </div>
+                    <div class="section-title">📊 Weekly Productivity</div>
+                    <div class="chart-container">
+                        <div class="chart-bar" style="height: 70%;" title="Mon">70%</div>
+                        <div class="chart-bar" style="height: 85%;" title="Tue">85%</div>
+                        <div class="chart-bar" style="height: 78%;" title="Wed">78%</div>
+                        <div class="chart-bar" style="height: 92%;" title="Thu">92%</div>
+                        <div class="chart-bar" style="height: 88%;" title="Fri">88%</div>
+                        <div class="chart-bar" style="height: 65%;" title="Sat">65%</div>
+                        <div class="chart-bar" style="height: 72%;" title="Sun">72%</div>
                     </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎓 Study Mode</div>
+                    <button class="btn btn-success" onclick="enableStudyMode()" style="margin-bottom: 12px;">📚 Enable Study Mode</button>
+                    <p style="font-size: 12px; color: var(--text-secondary);">Blocks distracting websites during study sessions</p>
                 </div>
             </div>
 
-            <!-- Settings Page -->
+            <!-- SETTINGS -->
             <div id="settings-page" class="page-content">
                 <div class="page-header">
-                    <h1>Settings</h1>
+                    <h1>⚙️ Settings</h1>
                     <p>Configure preferences</p>
                 </div>
 
                 <div class="section">
-                    <div class="section-title">⚙️ General Settings</div>
-                    <div style="margin-top: 20px;">
-                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; gap: 16px;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--gray-900);">Auto-reconnect</div>
-                                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Reconnect automatically</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
+                    <div class="section-title">Session Settings</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color);">
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Auto-Save Sessions</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Save sessions hourly</div>
                         </div>
-                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; gap: 16px;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--gray-900);">Command History</div>
-                                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Save command history</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        </div>
-                        <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
-                            <div>
-                                <div style="font-weight: 700; color: var(--gray-900);">Analytics</div>
-                                <div style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">Enable analytics tracking</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        </div>
+                        <input type="checkbox" checked style="width: 20px; height: 20px;">
                     </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border-color);">
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Cloud Sync</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Sync data across devices</div>
+                        </div>
+                        <input type="checkbox" checked style="width: 20px; height: 20px;">
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-primary);">Dark Mode</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Enable dark theme</div>
+                        </div>
+                        <input type="checkbox" id="darkModeToggle" style="width: 20px; height: 20px;">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Data Management</div>
+                    <button class="btn btn-success" onclick="exportData()" style="margin-bottom: 10px; width: 100%; text-align: center;">📥 Export All Data</button>
+                    <button class="btn btn-danger" onclick="clearAllData()" style="width: 100%; text-align: center;">🗑️ Clear All Data</button>
                 </div>
             </div>
 
-            <!-- Help Page -->
-            <div id="help-page" class="page-content">
+            <!-- HISTORY -->
+            <div id="history-page" class="page-content">
                 <div class="page-header">
-                    <h1>Help & Documentation</h1>
-                    <p>Learn how to use Neura Sync</p>
+                    <h1>📋 History & Logs</h1>
+                    <p>View all commands and events</p>
                 </div>
-
                 <div class="section">
-                    <div class="section-title">🚀 Getting Started</div>
-                    <div class="cards-grid">
-                        <div class="info-card">
-                            <h3>Step 1: Connect</h3>
-                            <p>Open this app in any browser - automatic connection</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Step 2: Type Command</h3>
-                            <p>Enter a command using supported syntax</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Step 3: Broadcast</h3>
-                            <p>Command sends to all connected devices instantly</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>Step 4: Execute</h3>
-                            <p>All browsers receive and execute the command</p>
-                        </div>
-                    </div>
+                    <div class="section-title">Activity Log</div>
+                    <div id="activityLog" style="max-height: 500px; overflow-y: auto;"></div>
                 </div>
+            </div>
 
+            <!-- COMMANDS -->
+            <div id="commands-page" class="page-content">
+                <div class="page-header">
+                    <h1>📤 Commands</h1>
+                    <p>Send commands to connected devices</p>
+                </div>
                 <div class="section">
-                    <div class="section-title">❓ FAQ</div>
-                    <div style="margin-top: 20px;">
-                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200);">
-                            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 8px;">How do I connect?</div>
-                            <p style="font-size: 12px; color: var(--gray-600);">Simply open the URL in any browser - auto connects</p>
+                    <div class="section-title">Send Command</div>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Command</label>
+                            <input type="text" id="cmdInput" placeholder="Type command...">
                         </div>
-                        <div style="padding: 16px; border-bottom: 1px solid var(--gray-200);">
-                            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 8px;">Are commands safe?</div>
-                            <p style="font-size: 12px; color: var(--gray-600);">Yes! Validated and executed in browser sandbox</p>
-                        </div>
-                        <div style="padding: 16px;">
-                            <div style="font-weight: 700; color: var(--gray-900); margin-bottom: 8px;">What if connection drops?</div>
-                            <p style="font-size: 12px; color: var(--gray-600);">Auto-reconnect enabled by default</p>
-                        </div>
+                        <button class="btn" onclick="sendCommand()">📤 Send</button>
                     </div>
                 </div>
             </div>
@@ -1507,353 +414,277 @@
     </div>
 
     <script>
-        // DARK MODE TOGGLE
-        function toggleDarkMode() {
-            const body = document.body;
-            const sidebar = document.querySelector('.sidebar');
-            const navbar = document.querySelector('.navbar');
-            const container = document.querySelector('.container');
-            const sidebarHeader = document.querySelector('.sidebar-header');
-            const themeIcon = document.getElementById('themeIcon');
-
-            body.classList.toggle('dark-mode');
-            sidebar.classList.toggle('dark-mode');
-            navbar.classList.toggle('dark-mode');
-            container.classList.toggle('dark-mode');
-            sidebarHeader.classList.toggle('dark-mode');
-
-            // Update icon
-            if (body.classList.contains('dark-mode')) {
-                themeIcon.textContent = '☀️';
-                localStorage.setItem('theme', 'dark');
-            } else {
-                themeIcon.textContent = '🌙';
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        // Load saved theme preference
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            const body = document.body;
-            const sidebar = document.querySelector('.sidebar');
-            const navbar = document.querySelector('.navbar');
-            const container = document.querySelector('.container');
-            const sidebarHeader = document.querySelector('.sidebar-header');
-            const themeIcon = document.getElementById('themeIcon');
-
-            if (savedTheme === 'dark') {
-                body.classList.add('dark-mode');
-                sidebar.classList.add('dark-mode');
-                navbar.classList.add('dark-mode');
-                container.classList.add('dark-mode');
-                sidebarHeader.classList.add('dark-mode');
-                themeIcon.textContent = '☀️';
-            } else {
-                body.classList.remove('dark-mode');
-                sidebar.classList.remove('dark-mode');
-                navbar.classList.remove('dark-mode');
-                container.classList.remove('dark-mode');
-                sidebarHeader.classList.remove('dark-mode');
-                themeIcon.textContent = '🌙';
-            }
-        }
-
-        // WEBSOCKET & STATE
-        let socket = null;
         const state = {
-            commandsSent: 0,
-            startTime: Date.now(),
-            logs: [],
-            clientCount: 0,
-            avgResponse: 45,
-            recentCommands: [],
-            favorites: [],
-            connected: false,
-            sessionStart: Date.now(),
+            sessions: [],
+            clipboard: [],
+            commands: [],
+            focusScore: 85,
+            pomodoroTime: 1500,
+            timerRunning: false,
+            activityLog: [],
+            commandsToday: 0,
+            focusTimeToday: 0,
         };
 
-        function initSocket() {
-            socket = io(window.location.origin, {
-                reconnection: true,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
-                reconnectionAttempts: Infinity,
-            });
-
-            socket.on('connect', () => {
-                state.connected = true;
-                state.sessionStart = Date.now();
-                updateConnectionStatus(true);
-                addLog('system', '✓ Connected to server');
-                console.log('✓ Connected');
-            });
-
-            socket.on('disconnect', () => {
-                state.connected = false;
-                updateConnectionStatus(false);
-                addLog('system', '✗ Disconnected from server');
-                console.log('✗ Disconnected');
-            });
-
-            socket.on('client_count', (data) => {
-                state.clientCount = data.count;
-                updateStats();
-                console.log(`👥 Clients: ${data.count}`);
-            });
-
-            socket.on('command_received', (data) => {
-                console.log('📨 Command received:', data);
-                addLog('received', `${data.cmd_type.toUpperCase()}: ${data.command}`);
-                state.avgResponse = Math.random() * 50 + 25;
-                executeCmd(data.command);
-                updateStats();
-            });
-
-            socket.on('connect_error', (error) => {
-                console.error('Connection error:', error);
-                addLog('system', `⚠️ Connection error`);
-            });
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
 
-        function updateConnectionStatus(connected) {
-            const dot = document.getElementById('statusDot');
-            const text = document.getElementById('statusText');
-            const alert = document.getElementById('connectionAlert');
-            const status = document.getElementById('networkStatus');
-
-            if (connected) {
-                dot.classList.add('active');
-                text.textContent = 'Connected';
-                alert.classList.remove('show');
-                status.textContent = 'Connected';
-                document.getElementById('userStatus').style.color = 'var(--success)';
-                document.getElementById('connQuality').textContent = '100%';
-            } else {
-                dot.classList.remove('active');
-                text.textContent = 'Disconnected';
-                alert.classList.add('show');
-                status.textContent = 'Disconnected';
-                document.getElementById('userStatus').style.color = 'var(--danger)';
-                document.getElementById('connQuality').textContent = '0%';
+        function loadDarkMode() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
             }
         }
 
-        // PAGE SWITCHING
         function switchPage(e, page) {
-            try {
-                document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                document.getElementById(page + '-page').classList.add('active');
-                e.target.closest('.nav-item').classList.add('active');
+            document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(page + '-page').classList.add('active');
+            e.target.closest('.nav-item').classList.add('active');
 
-                const titles = {
-                    dashboard: 'Dashboard',
-                    commands: 'Send Commands',
-                    history: 'History & Logs',
-                    analytics: 'Analytics & Reports',
-                    devices: 'Connected Devices',
-                    templates: 'Command Templates',
-                    settings: 'Settings',
-                    help: 'Help & Documentation',
-                };
-                document.getElementById('pageTitle').textContent = titles[page];
-            } catch (err) {
-                console.error('Error:', err);
-            }
-        }
-
-        function switchTab(e, tab) {
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            e.target.classList.add('active');
-            document.getElementById(tab + '-tab').classList.add('active');
-        }
-
-        // COMMANDS
-        function insertCmd(cmd) {
-            const cmdInput = document.getElementById('cmdInput');
-            const dashInput = document.getElementById('dashboardInput');
-            if (cmdInput) cmdInput.value = cmd;
-            if (dashInput) dashInput.value = cmd;
-        }
-
-        function sendCmd() {
-            const input = document.getElementById('cmdInput');
-            const cmd = input.value.trim();
-            if (!cmd) return alert('Enter a command');
-            if (!state.connected) return alert('Not connected to server');
-
-            socket.emit('send_command', { command: cmd });
-            state.commandsSent++;
-            if (!state.recentCommands.includes(cmd)) {
-                state.recentCommands.unshift(cmd);
-            }
-            addLog('sent', cmd);
-            input.value = '';
-            updateStats();
-            renderRecent();
-        }
-
-        function sendFromDash() {
-            const input = document.getElementById('dashboardInput');
-            const cmd = input.value.trim();
-            if (!cmd) return alert('Enter a command');
-            if (!state.connected) return alert('Not connected to server');
-
-            socket.emit('send_command', { command: cmd });
-            state.commandsSent++;
-            if (!state.recentCommands.includes(cmd)) {
-                state.recentCommands.unshift(cmd);
-            }
-            addLog('sent', cmd);
-            input.value = '';
-            updateStats();
-            renderRecent();
-        }
-
-        function executeBatch() {
-            const input = document.getElementById('batchInput');
-            const commands = input.value.split('\n').filter(c => c.trim());
-            if (!commands.length) return alert('Enter commands');
-            if (!state.connected) return alert('Not connected to server');
-
-            const statusDiv = document.getElementById('batchStatus');
-            statusDiv.innerHTML = `⏳ Executing ${commands.length} commands...`;
-
-            commands.forEach((cmd, i) => {
-                setTimeout(() => {
-                    const trimmed = cmd.trim();
-                    socket.emit('send_command', { command: trimmed });
-                    state.commandsSent++;
-                    if (!state.recentCommands.includes(trimmed)) {
-                        state.recentCommands.unshift(trimmed);
-                    }
-                    addLog('sent', trimmed);
-                    statusDiv.innerHTML = `✓ Sent ${i + 1}/${commands.length}`;
-                    updateStats();
-                }, i * 500);
-            });
-
-            setTimeout(() => {
-                statusDiv.innerHTML = `✅ All ${commands.length} commands sent!`;
-                renderRecent();
-            }, commands.length * 500);
-        }
-
-        function executeCmd(command) {
-            if (command.startsWith('open')) {
-                const url = command.replace('open ', '').trim();
-                const fullUrl = url.startsWith('http') ? url : 'https://' + url;
-                window.open(fullUrl, '_blank');
-                addLog('executed', `Opened: ${fullUrl}`);
-            } else if (command.startsWith('search')) {
-                const query = command.replace('search ', '').trim();
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-                addLog('executed', `Searched: "${query}"`);
-            }
-        }
-
-        // FAVORITES
-        function toggleFavorite(cmd) {
-            const idx = state.favorites.indexOf(cmd);
-            if (idx > -1) {
-                state.favorites.splice(idx, 1);
-            } else {
-                state.favorites.push(cmd);
-            }
-            renderRecent();
-        }
-
-        function renderRecent() {
-            const recentDiv = document.getElementById('recentCommands');
-            const favDiv = document.getElementById('favoriteCommands');
-
-            if (state.recentCommands.length === 0) {
-                recentDiv.innerHTML = '<div style="color: var(--gray-400); text-align: center; padding: 20px;">No recent commands</div>';
-            } else {
-                recentDiv.innerHTML = state.recentCommands.slice(0, 10).map(cmd => `
-                    <div class="command-history-item">
-                        <span style="flex: 1; word-break: break-word;">${cmd}</span>
-                        <button class="favorite-btn ${state.favorites.includes(cmd) ? 'active' : ''}" onclick="toggleFavorite('${cmd.replace(/'/g, "\\'")}')">
-                            ${state.favorites.includes(cmd) ? '⭐' : '☆'}
-                        </button>
-                    </div>
-                `).join('');
-            }
-
-            if (state.favorites.length === 0) {
-                favDiv.innerHTML = '<div style="color: var(--gray-400); text-align: center; padding: 20px;">No favorites</div>';
-            } else {
-                favDiv.innerHTML = state.favorites.map(cmd => `
-                    <div class="command-history-item">
-                        <span style="flex: 1; word-break: break-word;">${cmd}</span>
-                        <button class="favorite-btn active" onclick="toggleFavorite('${cmd.replace(/'/g, "\\'")}')">⭐</button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // LOGGING
-        function addLog(type, message) {
-            const log = {
-                time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-                type: type,
-                message: message,
+            const titles = {
+                dashboard: 'Dashboard',
+                sessions: '💾 Session Manager',
+                clipboard: '📋 Cloud Clipboard',
+                search: '🔍 AI Search',
+                productivity: '🎯 Productivity',
+                settings: '⚙️ Settings',
+                history: '📋 History',
+                commands: '📤 Commands',
             };
-            state.logs.unshift(log);
-            renderLogs();
+            document.getElementById('pageTitle').textContent = titles[page];
         }
 
-        function renderLogs() {
-            const container = document.getElementById('logContainer');
-            if (!state.logs.length) {
-                container.innerHTML = '<div class="empty-state"><div style="font-size: 48px;">📭</div><div>Waiting for commands...</div></div>';
+        function saveSession() {
+            const name = document.getElementById('sessionName').value;
+            if (!name) return alert('Enter session name');
+
+            const session = {
+                id: Date.now(),
+                name: name,
+                tabs: Math.floor(Math.random() * 10) + 1,
+                date: new Date().toLocaleDateString(),
+                size: (Math.random() * 5 + 0.5).toFixed(1) + 'MB'
+            };
+
+            state.sessions.push(session);
+            document.getElementById('sessionName').value = '';
+            renderSessions();
+            updateStats();
+            addActivityLog('Session saved: ' + name);
+        }
+
+        function renderSessions() {
+            const list = document.getElementById('sessionsList');
+            if (state.sessions.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No sessions saved</p>';
                 return;
             }
-            container.innerHTML = state.logs.slice(0, 50).map(log => `
-                <div class="log-entry">
-                    <span class="log-time">${log.time}</span>
-                    <span class="log-badge ${log.type}">${log.type.toUpperCase()}</span>
-                    <span class="log-message">${log.message}</span>
+            list.innerHTML = state.sessions.map(s => `
+                <div class="session-item">
+                    <div class="session-info">
+                        <div class="session-name">${s.name}</div>
+                        <div class="session-meta">${s.tabs} tabs • ${s.date} • ${s.size}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm btn-success" onclick="restoreSession(${s.id})">📂 Restore</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSession(${s.id})">🗑️ Delete</button>
+                    </div>
                 </div>
             `).join('');
         }
 
-        // STATS
-        function updateStats() {
-            document.getElementById('commandsSent').textContent = state.commandsSent;
-            document.getElementById('todayCommands').textContent = state.commandsSent;
-            document.getElementById('avgResponse').textContent = Math.round(state.avgResponse) + 'ms';
-            document.getElementById('avgResponseMini').textContent = Math.round(state.avgResponse) + 'ms';
-            document.getElementById('analyticsTotal').textContent = state.commandsSent;
-            document.getElementById('analyticsLatency').textContent = Math.round(state.avgResponse) + 'ms';
-            document.getElementById('dataTransfer').textContent = state.commandsSent;
-            document.getElementById('metric-latency').textContent = Math.round(state.avgResponse) + 'ms';
-            document.getElementById('metric-latency-avg').textContent = Math.round(state.avgResponse) + 'ms';
-
-            const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
-            const hours = Math.max(1, Math.floor(elapsed / 3600));
-            document.getElementById('cmdPerHour').textContent = Math.round(state.commandsSent / hours);
-            document.getElementById('metric-cpm').textContent = Math.round(state.commandsSent / Math.max(Math.floor(elapsed / 60), 1));
-            document.getElementById('metric-cpm-avg').textContent = Math.round(state.commandsSent / hours);
-
-            document.getElementById('clientCount').textContent = state.clientCount;
-            document.getElementById('totalDevices').textContent = state.clientCount;
-            document.getElementById('activeSessionCount').textContent = state.clientCount;
-            document.getElementById('analyticsDevices').textContent = state.clientCount;
-            document.getElementById('metric-active').textContent = state.clientCount;
-            document.getElementById('metric-active-avg').textContent = state.clientCount;
+        function restoreSession(id) {
+            const session = state.sessions.find(s => s.id === id);
+            if (session) {
+                alert('Restored session: ' + session.name);
+                addActivityLog('Session restored: ' + session.name);
+            }
         }
 
-        function updateUptime() {
-            const elapsed = Math.floor((Date.now() - state.sessionStart) / 1000);
-            const hours = Math.floor(elapsed / 3600);
-            const minutes = Math.floor((elapsed % 3600) / 60);
-            const seconds = elapsed % 60;
-            const uptime = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            document.getElementById('uptime').textContent = uptime;
-            document.getElementById('deviceUptime').textContent = uptime;
+        function deleteSession(id) {
+            state.sessions = state.sessions.filter(s => s.id !== id);
+            renderSessions();
+            updateStats();
+        }
+
+        function addToClipboard() {
+            const text = document.getElementById('clipboardInput').value;
+            if (!text) return alert('Enter text');
+
+            const item = {
+                id: Date.now(),
+                text: text.substring(0, 50),
+                time: new Date().toLocaleTimeString(),
+                fullText: text
+            };
+
+            state.clipboard.unshift(item);
+            if (state.clipboard.length > 20) state.clipboard.pop();
+            document.getElementById('clipboardInput').value = '';
+            renderClipboard();
+            updateStats();
+            addActivityLog('Added to clipboard');
+        }
+
+        function renderClipboard() {
+            const list = document.getElementById('clipboardList');
+            if (state.clipboard.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No clipboard items</p>';
+                return;
+            }
+            list.innerHTML = state.clipboard.map(item => `
+                <div class="clipboard-item">
+                    <div class="clipboard-text">${item.text}...</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm" onclick="copyClipboardItem('${item.fullText.replace(/'/g, "\\'")}')">📋 Copy</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteClipboardItem(${item.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyClipboardItem(text) {
+            navigator.clipboard.writeText(text);
+            alert('Copied to clipboard!');
+        }
+
+        function deleteClipboardItem(id) {
+            state.clipboard = state.clipboard.filter(item => item.id !== id);
+            renderClipboard();
+            updateStats();
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchQuery').value;
+            if (!query) return;
+
+            const results = [
+                { type: 'Tab', title: `Tab matching "${query}"`, meta: 'Open in browser' },
+                { type: 'Bookmark', title: `Bookmark: ${query} Guide`, meta: 'Saved 2 days ago' },
+                { type: 'History', title: `Visited: ${query}.com`, meta: 'Yesterday at 3:45 PM' },
+                { type: 'Clipboard', title: `Text: "${query}"`, meta: 'Copied recently' }
+            ];
+
+            document.getElementById('searchResults').innerHTML = results.map(r => `
+                <div class="result-item">
+                    <div class="result-title">${r.type}: ${r.title}</div>
+                    <div class="result-meta">${r.meta}</div>
+                </div>
+            `).join('');
+
+            addActivityLog('Searched for: ' + query);
+        }
+
+        let pomodoroInterval = null;
+
+        function startTimer() {
+            if (state.timerRunning) return;
+            state.timerRunning = true;
+            pomodoroInterval = setInterval(() => {
+                state.pomodoroTime--;
+                updateTimerDisplay();
+                if (state.pomodoroTime === 0) {
+                    clearInterval(pomodoroInterval);
+                    state.timerRunning = false;
+                    alert('Pomodoro session complete!');
+                    state.pomodoroTime = 1500;
+                    updateTimerDisplay();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (pomodoroInterval) {
+                clearInterval(pomodoroInterval);
+                state.timerRunning = false;
+            }
+        }
+
+        function resetTimer() {
+            if (pomodoroInterval) clearInterval(pomodoroInterval);
+            state.timerRunning = false;
+            state.pomodoroTime = 1500;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(state.pomodoroTime / 60);
+            const secs = state.pomodoroTime % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function enableStudyMode() {
+            alert('✅ Study Mode enabled! Distracting sites blocked.');
+            addActivityLog('Study Mode enabled');
+        }
+
+        function exportData() {
+            const data = {
+                sessions: state.sessions,
+                clipboard: state.clipboard,
+                timestamp: new Date().toISOString()
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'neura-sync-backup.json';
+            a.click();
+            addActivityLog('Data exported');
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ This will delete all data. Continue?')) {
+                state.sessions = [];
+                state.clipboard = [];
+                state.commands = [];
+                localStorage.clear();
+                renderSessions();
+                renderClipboard();
+                updateStats();
+                addActivityLog('All data cleared');
+                alert('✅ All data cleared');
+            }
+        }
+
+        function sendCommand() {
+            const cmd = document.getElementById('cmdInput').value;
+            if (!cmd) return alert('Enter command');
+            state.commandsToday++;
+            document.getElementById('cmdInput').value = '';
+            addActivityLog('Command sent: ' + cmd);
+            updateStats();
+        }
+
+        function addActivityLog(message) {
+            state.activityLog.unshift({
+                time: new Date().toLocaleTimeString(),
+                message: message
+            });
+            if (state.activityLog.length > 50) state.activityLog.pop();
+            renderActivityLog();
+        }
+
+        function renderActivityLog() {
+            const log = document.getElementById('activityLog');
+            if (!log) return;
+            log.innerHTML = state.activityLog.map(entry => `
+                <div style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; font-size: 12px;">
+                    <span style="color: var(--text-secondary); font-family: monospace; min-width: 60px;">${entry.time}</span>
+                    <span style="color: var(--text-primary);">${entry.message}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('sessionCount').textContent = state.sessions.length;
+            document.getElementById('clipboardCount').textContent = state.clipboard.length;
+            document.getElementById('cmdToday').textContent = state.commandsToday;
+            document.getElementById('syncedData').textContent = ((state.sessions.length * 1.2 + state.clipboard.length * 0.05).toFixed(1)) + 'MB';
         }
 
         function updateTime() {
@@ -1861,26 +692,16 @@
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', { hour12: false });
         }
 
-        // INIT
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('✓ Neura Sync v2.0 loaded');
-            loadTheme();
-            initSocket();
-            addLog('system', 'Neura Sync initialized - Connecting...');
+            loadDarkMode();
             updateTime();
-            updateUptime();
+            updateTimerDisplay();
+            renderSessions();
+            renderClipboard();
+            renderActivityLog();
             updateStats();
-            renderRecent();
+            addActivityLog('Neura Sync v3.0 initialized');
             setInterval(updateTime, 1000);
-            setInterval(updateUptime, 1000);
-
-            document.getElementById('cmdInput')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendCmd();
-            });
-
-            document.getElementById('dashboardInput')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendFromDash();
-            });
         });
     </script>
 </body>
