@@ -490,6 +490,23 @@ def handle_focus_complete(data):
     except Exception as e:
         print(f'❌ Focus Complete Error: {e}')
 
+# ==================== HELPER FUNCTIONS ====================
+
+def get_or_create_user(user_id):
+    """Ensure user exists in database, create if not"""
+    if not user_id:
+        return None
+    user = User.query.get(user_id)
+    if not user:
+        user = User(id=user_id, username=user_id, email=f"{user_id}@neurasync.local", password_hash='auto-generated')
+        db.session.add(user)
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
+            user = User.query.get(user_id)
+    return user
+
 # ==================== REST API ENDPOINTS ====================
 
 @app.route('/')
@@ -509,7 +526,10 @@ def profiles():
         return jsonify([p.to_dict() for p in profiles])
     
     data = request.get_json()
-    profile = Profile(user_id=data.get('user_id'), name=data.get('name'),
+    user_id = data.get('user_id')
+    get_or_create_user(user_id)
+    
+    profile = Profile(user_id=user_id, name=data.get('name'),
                      profile_type=data.get('type', 'personal'), icon=data.get('icon', '👤'))
     db.session.add(profile)
     db.session.commit()
@@ -536,6 +556,8 @@ def devices():
     if request.method == 'GET':
         devices = Device.query.filter_by(user_id=user_id).all() if user_id else []
         return jsonify([d.to_dict() for d in devices])
+    
+    get_or_create_user(user_id)
     
     data = request.get_json()
     device = Device(user_id=data.get('user_id'), device_name=data.get('name'),
@@ -712,6 +734,9 @@ def clipboard():
         db.session.commit()
         return jsonify({'success': True})
     
+    # Ensure user exists before inserting
+    get_or_create_user(user_id)
+    
     data = request.get_json()
     item = ClipboardItem(user_id=user_id, content=data.get('content'),
                         content_type=data.get('content_type', 'text'),
@@ -727,6 +752,8 @@ def privacy_events():
     if request.method == 'GET':
         events = PrivacyEvent.query.filter_by(user_id=user_id).order_by(PrivacyEvent.created_at.desc()).limit(50).all()
         return jsonify([e.to_dict() for e in events])
+    
+    get_or_create_user(user_id)
     
     data = request.get_json()
     event = PrivacyEvent(user_id=user_id, event_type=data.get('event_type'),
@@ -752,6 +779,8 @@ def analytics():
 def analytics_today():
     user_id = request.args.get('user_id') or (request.get_json() or {}).get('user_id')
     today = datetime.utcnow().date()
+    
+    get_or_create_user(user_id)
     
     snapshot = AnalyticsSnapshot.query.filter_by(user_id=user_id, date=today).first()
     
@@ -789,6 +818,8 @@ def blocked_sites():
             BlockedSite.query.filter_by(id=site_id).delete()
             db.session.commit()
         return jsonify({'success': True})
+    
+    get_or_create_user(user_id)
     
     data = request.get_json()
     site = BlockedSite(user_id=user_id, domain=data.get('domain'), category=data.get('category'))
@@ -837,6 +868,8 @@ def vault():
         credentials = Credential.query.filter_by(user_id=user_id).order_by(Credential.site_name).all()
         return jsonify([c.to_dict() for c in credentials])
     
+    get_or_create_user(user_id)
+    
     data = request.get_json()
     credential = Credential(
         user_id=user_id,
@@ -880,6 +913,8 @@ def extensions():
             query = query.filter_by(profile_id=profile_id)
         exts = query.all()
         return jsonify([e.to_dict() for e in exts])
+    
+    get_or_create_user(user_id)
     
     data = request.get_json()
     ext = Extension(
