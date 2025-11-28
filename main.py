@@ -145,7 +145,7 @@ def handle_disconnect():
 def handle_command(data):
     try:
         command = data.get('command', '').strip()
-        user_id = data.get('user_id')
+        user_id = data.get('user_id', 'anonymous')
 
         if not command:
             emit('error', {'message': 'Empty command'})
@@ -153,30 +153,67 @@ def handle_command(data):
 
         cmd_type = 'open' if command.startswith('open') else 'search' if command.startswith('search') else 'unknown'
 
-        # Log command to database
-        cmd_log = CommandLog(
-            user_id=user_id,
-            command=command,
-            command_type=cmd_type,
-            device_count=len(connected_clients),
-            status='sent'
-        )
-        db.session.add(cmd_log)
-        db.session.commit()
+        # Parse command details
+        cmd_details = {}
+        if cmd_type == 'open':
+            url = command.replace('open ', '').strip()
+            cmd_details = {'type': 'open', 'url': url}
+        elif cmd_type == 'search':
+            query = command.replace('search ', '').strip()
+            cmd_details = {'type': 'search', 'query': query}
 
-        # Broadcast to all clients
-        socketio.emit('command_received', {
+        # Log command to database (optional, handle if DB not ready)
+        try:
+            cmd_log = CommandLog(
+                user_id=user_id if user_id else 'guest',
+                command=command,
+                command_type=cmd_type,
+                device_count=len(connected_clients),
+                status='executing'
+            )
+            db.session.add(cmd_log)
+            db.session.commit()
+            cmd_id = cmd_log.id
+        except:
+            cmd_id = str(uuid.uuid4())
+
+        # Broadcast to SENDER first
+        emit('command_received', {
             'command': command,
             'cmd_type': cmd_type,
+            'details': cmd_details,
             'timestamp': datetime.utcnow().isoformat(),
-            'sender': request.sid[:8]
+            'sender': request.sid[:8],
+            'command_id': cmd_id,
+            'status': 'executing'
+        }, room=request.sid)
+
+        print(f'📤 Command executing: {command}')
+
+        # Send to all OTHER clients
+        for client_id in list(connected_clients.keys()):
+            if client_id != request.sid:
+                socketio.emit('command_received', {
+                    'command': command,
+                    'cmd_type': cmd_type,
+                    'details': cmd_details,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'sender': request.sid[:8],
+                    'command_id': cmd_id,
+                    'status': 'executing'
+                }, room=client_id)
+
+        # Send acknowledgment
+        emit('command_ack', {
+            'status': 'success',
+            'command_id': cmd_id,
+            'message': f'Command "{command}" sent to {len(connected_clients)} device(s)'
         })
 
-        print(f'📤 Command sent: {command} to {len(connected_clients)} clients')
-        emit('command_ack', {'status': 'success', 'command_id': cmd_log.id})
+        print(f'✓ Command broadcast complete: {command}')
 
     except Exception as e:
-        print(f'❌ Error: {e}')
+        print(f'❌ Command Error: {e}')
         emit('error', {'message': str(e)})
 
 @socketio.on('sync_clipboard')

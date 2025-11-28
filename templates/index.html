@@ -654,10 +654,34 @@
         function sendCommand() {
             const cmd = document.getElementById('cmdInput').value;
             if (!cmd) return alert('Enter command');
+
+            // Send via WebSocket if available, otherwise local execution
+            if (typeof socket !== 'undefined' && socket) {
+                socket.emit('send_command', {
+                    command: cmd,
+                    user_id: 'guest'
+                });
+            }
+
+            // Execute locally
+            executeCommand(cmd);
             state.commandsToday++;
             document.getElementById('cmdInput').value = '';
             addActivityLog('Command sent: ' + cmd);
             updateStats();
+        }
+
+        function executeCommand(cmd) {
+            if (cmd.startsWith('open')) {
+                const url = cmd.replace('open ', '').trim();
+                const fullUrl = url.startsWith('http') ? url : 'https://' + url;
+                window.open(fullUrl, '_blank');
+                addActivityLog('Opened: ' + fullUrl);
+            } else if (cmd.startsWith('search')) {
+                const query = cmd.replace('search ', '').trim();
+                window.open('https://www.google.com/search?q=' + encodeURIComponent(query), '_blank');
+                addActivityLog('Searched: ' + query);
+            }
         }
 
         function addActivityLog(message) {
@@ -692,6 +716,52 @@
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', { hour12: false });
         }
 
+        // WebSocket Setup
+        let socket = null;
+
+        function initSocket() {
+            try {
+                socket = io(window.location.origin || 'http://localhost:5000', {
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionDelayMax: 5000,
+                    reconnectionAttempts: 5
+                });
+
+                socket.on('connect', () => {
+                    console.log('✓ Connected to server');
+                    addActivityLog('Connected to server');
+                    document.getElementById('statusDot').classList.add('active');
+                    document.getElementById('statusText').textContent = 'Connected';
+                });
+
+                socket.on('disconnect', () => {
+                    console.log('✗ Disconnected from server');
+                    addActivityLog('Disconnected from server');
+                    document.getElementById('statusDot').classList.remove('active');
+                    document.getElementById('statusText').textContent = 'Disconnected';
+                });
+
+                socket.on('command_ack', (data) => {
+                    console.log('✓ Command acknowledged:', data);
+                    addActivityLog('Command executed: ' + data.message);
+                });
+
+                socket.on('command_received', (data) => {
+                    console.log('📨 Command received:', data);
+                    executeCommand(data.command);
+                    addActivityLog('Command received: ' + data.command);
+                });
+
+                socket.on('error', (error) => {
+                    console.error('Socket error:', error);
+                    addActivityLog('Error: ' + error.message);
+                });
+            } catch (e) {
+                console.log('WebSocket not available, running in local mode');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             loadDarkMode();
             updateTime();
@@ -701,6 +771,7 @@
             renderActivityLog();
             updateStats();
             addActivityLog('Neura Sync v3.0 initialized');
+            initSocket();
             setInterval(updateTime, 1000);
         });
     </script>
