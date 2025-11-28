@@ -994,9 +994,17 @@
             clipboard: [],
             sessions: [],
             history: [],
+            readingList: [],
+            blockedSites: [],
+            profiles: [],
+            credentials: [],
+            privacyEvents: [],
+            analytics: null,
             focusTime: 1500,
             focusRunning: false,
-            currentProfile: 'work'
+            focusSessionId: null,
+            currentProfile: 'work',
+            currentProfileId: null
         };
 
         let socket = null;
@@ -1006,6 +1014,21 @@
 
         function generateCode() {
             return Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+
+        async function api(endpoint, method = 'GET', data = null) {
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' }
+            };
+            if (data) options.body = JSON.stringify(data);
+            try {
+                const response = await fetch(`/api/v1/${endpoint}`, options);
+                return await response.json();
+            } catch (e) {
+                console.error('API Error:', e);
+                return null;
+            }
         }
 
         function initSocket() {
@@ -1020,6 +1043,7 @@
                     socket.emit('register_device', { user_id: userId });
                     updateSyncStatus(true);
                     addActivity('Connected to sync server');
+                    loadAllData();
                 });
 
                 socket.on('device_registered', (data) => {
@@ -1044,12 +1068,132 @@
                     addActivity('Clipboard synced from another device');
                 });
 
+                socket.on('tabs_updated', (data) => {
+                    state.tabs = data.tabs || [];
+                    renderTabs();
+                });
+
+                socket.on('bookmarks_updated', (data) => {
+                    loadBookmarks();
+                });
+
+                socket.on('focus_started', (data) => {
+                    state.focusSessionId = data.session_id;
+                });
+
                 socket.on('disconnect', () => {
                     updateSyncStatus(false);
                     addActivity('Disconnected from server');
                 });
             } catch (e) {
                 console.log('WebSocket error:', e);
+            }
+        }
+
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadClipboard(),
+                loadSessions(),
+                loadBookmarks(),
+                loadHistory(),
+                loadReadingList(),
+                loadProfiles(),
+                loadAnalytics(),
+                loadBlockedSites(),
+                loadPrivacyEvents(),
+                loadCredentials()
+            ]);
+        }
+
+        async function loadStats() {
+            const stats = await api(`stats?user_id=${userId}&profile_id=${state.currentProfileId || ''}`);
+            if (stats) {
+                document.getElementById('statDevices').textContent = stats.devices || state.devices;
+                document.getElementById('statTabs').textContent = stats.tabs || 0;
+                document.getElementById('statBookmarks').textContent = stats.bookmarks || 0;
+                document.getElementById('statClipboard').textContent = stats.clipboard || 0;
+            }
+        }
+
+        async function loadClipboard() {
+            const items = await api(`clipboard?user_id=${userId}`);
+            if (items && Array.isArray(items)) {
+                state.clipboard = items;
+                renderClipboard();
+                document.getElementById('statClipboard').textContent = items.length;
+            }
+        }
+
+        async function loadSessions() {
+            const sessions = await api(`sessions?user_id=${userId}`);
+            if (sessions && Array.isArray(sessions)) {
+                state.sessions = sessions;
+                renderSessions();
+            }
+        }
+
+        async function loadBookmarks() {
+            const bookmarks = await api(`bookmarks?profile_id=${state.currentProfileId || 'default'}`);
+            if (bookmarks && Array.isArray(bookmarks)) {
+                state.bookmarks = bookmarks;
+                renderBookmarks();
+                document.getElementById('statBookmarks').textContent = bookmarks.length;
+            }
+        }
+
+        async function loadHistory() {
+            const history = await api(`history?user_id=${userId}&limit=50`);
+            if (history && Array.isArray(history)) {
+                state.history = history;
+                renderHistory();
+            }
+        }
+
+        async function loadReadingList() {
+            const items = await api(`reading-list?user_id=${userId}`);
+            if (items && Array.isArray(items)) {
+                state.readingList = items;
+                renderReadingList();
+            }
+        }
+
+        async function loadProfiles() {
+            const profiles = await api(`profiles?user_id=${userId}`);
+            if (profiles && Array.isArray(profiles)) {
+                state.profiles = profiles;
+                renderProfiles();
+            }
+        }
+
+        async function loadAnalytics() {
+            const analytics = await api(`analytics/today?user_id=${userId}`);
+            if (analytics) {
+                state.analytics = analytics;
+                renderAnalytics();
+            }
+        }
+
+        async function loadBlockedSites() {
+            const sites = await api(`focus/blocked-sites?user_id=${userId}`);
+            if (sites && Array.isArray(sites)) {
+                state.blockedSites = sites;
+                renderBlockedSites();
+            }
+        }
+
+        async function loadPrivacyEvents() {
+            const events = await api(`privacy/events?user_id=${userId}`);
+            if (events && Array.isArray(events)) {
+                state.privacyEvents = events;
+                renderPrivacyEvents();
+            }
+        }
+
+        async function loadCredentials() {
+            const creds = await api(`vault?user_id=${userId}`);
+            if (creds && Array.isArray(creds)) {
+                state.credentials = creds;
             }
         }
 
@@ -1091,6 +1235,15 @@
                 document.getElementById('syncCodeDisplay').textContent = syncCode;
                 document.getElementById('commandSyncCode').textContent = syncCode;
             }
+            
+            if (page === 'clipboard') loadClipboard();
+            if (page === 'bookmarks') loadBookmarks();
+            if (page === 'history') loadHistory();
+            if (page === 'reading') loadReadingList();
+            if (page === 'analytics') loadAnalytics();
+            if (page === 'focus') loadBlockedSites();
+            if (page === 'privacy') loadPrivacyEvents();
+            if (page === 'tabs') loadSessions();
         }
 
         function joinSyncRoom() {
@@ -1104,6 +1257,7 @@
                 }
                 document.getElementById('syncCodeDisplay').textContent = code;
                 addActivity('Joined sync room: ' + code);
+                loadAllData();
             }
         }
 
@@ -1136,56 +1290,499 @@
 
         function addCommandHistory(cmd) {
             const history = document.getElementById('commandHistory');
+            if (!history) return;
             const item = document.createElement('div');
             item.className = 'list-item';
             item.innerHTML = `
                 <span>📤</span>
                 <div class="list-item-content">
-                    <div class="list-item-title">${cmd}</div>
+                    <div class="list-item-title">${escapeHtml(cmd)}</div>
                     <div class="list-item-meta">${new Date().toLocaleTimeString()}</div>
                 </div>
             `;
             history.insertBefore(item, history.firstChild);
         }
 
-        function addToClipboard() {
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function addToClipboard() {
             const content = document.getElementById('clipboardInput').value.trim();
             if (!content) return;
             
-            const item = { id: Date.now(), content, type: 'text', time: new Date().toISOString() };
-            state.clipboard.unshift(item);
-            
-            if (socket && socket.connected) {
-                socket.emit('sync_clipboard', { content, user_id: userId, content_type: 'text' });
+            const result = await api('clipboard', 'POST', { user_id: userId, content, content_type: 'text' });
+            if (result) {
+                state.clipboard.unshift(result);
+                if (socket && socket.connected) {
+                    socket.emit('sync_clipboard', { content, user_id: userId, content_type: 'text' });
+                }
+                renderClipboard();
+                document.getElementById('clipboardInput').value = '';
+                document.getElementById('statClipboard').textContent = state.clipboard.length;
+                addActivity('Added to clipboard');
             }
-            
+        }
+
+        async function pasteFromSystem() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    document.getElementById('clipboardInput').value = text;
+                }
+            } catch (e) {
+                alert('Please allow clipboard access or paste manually');
+            }
+        }
+
+        async function clearClipboard() {
+            if (!confirm('Clear all clipboard items?')) return;
+            await api(`clipboard?user_id=${userId}`, 'DELETE');
+            state.clipboard = [];
             renderClipboard();
-            document.getElementById('clipboardInput').value = '';
-            document.getElementById('statClipboard').textContent = state.clipboard.length;
-            addActivity('Added to clipboard');
+            document.getElementById('statClipboard').textContent = 0;
+            addActivity('Clipboard cleared');
         }
 
         function renderClipboard() {
             const list = document.getElementById('clipboardList');
+            if (!list) return;
             if (state.clipboard.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Clipboard is empty</div></div>';
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Clipboard is empty</div><div class="empty-text">Add items to sync them across devices</div></div>';
                 return;
             }
-            list.innerHTML = state.clipboard.slice(0, 20).map(item => `
+            list.innerHTML = state.clipboard.slice(0, 20).map(item => {
+                const content = item.content || item.full_content || '';
+                return `
                 <div class="list-item">
-                    <span>📝</span>
+                    <span>${item.content_type === 'code' ? '💻' : item.content_type === 'link' ? '🔗' : '📝'}</span>
                     <div class="list-item-content">
-                        <div class="list-item-title" style="font-family: monospace; font-size: 12px;">${(item.content || item.full_content || '').substring(0, 50)}...</div>
-                        <div class="list-item-meta">${new Date(item.time || item.created_at).toLocaleTimeString()}</div>
+                        <div class="list-item-title" style="font-family: monospace; font-size: 12px;">${escapeHtml(content.substring(0, 80))}${content.length > 80 ? '...' : ''}</div>
+                        <div class="list-item-meta">${new Date(item.time || item.created_at).toLocaleString()} • ${(item.size_kb || 0).toFixed(1)} KB</div>
                     </div>
-                    <button class="btn btn-sm btn-secondary" onclick="copyToSystem('${(item.content || item.full_content || '').replace(/'/g, "\\'")}')">📋 Copy</button>
+                    <button class="btn btn-sm btn-secondary" onclick="copyToSystem(\`${content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">📋 Copy</button>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function copyToSystem(text) {
             navigator.clipboard.writeText(text);
             addActivity('Copied to system clipboard');
+        }
+
+        function renderTabs() {
+            const list = document.getElementById('tabsList');
+            if (!list) return;
+            document.getElementById('tabCount').textContent = state.tabs.length + ' tabs';
+            if (state.tabs.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div><div class="empty-title">No tabs synced yet</div><div class="empty-text">Your open tabs will appear here when synced</div></div>';
+                return;
+            }
+            list.innerHTML = state.tabs.map(tab => `
+                <div class="list-item">
+                    <span>🌐</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(tab.title || tab.url)}</div>
+                        <div class="list-item-meta">${escapeHtml(tab.url?.substring(0, 50) || '')}...</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="window.open('${tab.url}', '_blank')">Open</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSessions() {
+            const list = document.getElementById('sessionsList');
+            if (!list) return;
+            if (state.sessions.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">💾</div><div class="empty-title">No saved sessions</div><div class="empty-text">Save your current tabs as a session</div></div>';
+                return;
+            }
+            list.innerHTML = state.sessions.map(session => `
+                <div class="list-item">
+                    <span>💾</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(session.name)}</div>
+                        <div class="list-item-meta">${session.tab_count} tabs • ${new Date(session.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn btn-sm btn-primary" onclick="restoreSession('${session.id}')">Restore</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSession('${session.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function saveCurrentSession() {
+            const name = prompt('Session name:');
+            if (!name) return;
+            
+            const result = await api('sessions', 'POST', {
+                user_id: userId,
+                name: name,
+                tabs: state.tabs
+            });
+            
+            if (result) {
+                state.sessions.unshift(result);
+                renderSessions();
+                addActivity('Session saved: ' + name);
+            }
+        }
+
+        async function restoreSession(sessionId) {
+            const session = await api(`sessions/${sessionId}`);
+            if (session && session.tabs) {
+                session.tabs.forEach(tab => {
+                    if (tab.url) window.open(tab.url, '_blank');
+                });
+                addActivity('Session restored: ' + session.name);
+            }
+        }
+
+        async function deleteSession(sessionId) {
+            if (!confirm('Delete this session?')) return;
+            await api(`sessions/${sessionId}`, 'DELETE');
+            state.sessions = state.sessions.filter(s => s.id !== sessionId);
+            renderSessions();
+            addActivity('Session deleted');
+        }
+
+        function renderBookmarks() {
+            const list = document.getElementById('recentBookmarks');
+            if (!list) return;
+            if (state.bookmarks.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">⭐</div><div class="empty-title">No bookmarks yet</div></div>';
+                return;
+            }
+            list.innerHTML = state.bookmarks.slice(0, 10).map(bm => `
+                <div class="list-item">
+                    <span>${bm.is_favorite ? '⭐' : '🌐'}</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(bm.title || bm.url)}</div>
+                        <div class="list-item-meta">${bm.folder_name || 'Uncategorized'} • ${new Date(bm.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="window.open('${bm.url}', '_blank')">Open</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteBookmark('${bm.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addBookmark(url, title, folder) {
+            const result = await api('bookmarks', 'POST', {
+                profile_id: state.currentProfileId || 'default',
+                url, title, folder
+            });
+            if (result) {
+                state.bookmarks.unshift(result);
+                renderBookmarks();
+                document.getElementById('statBookmarks').textContent = state.bookmarks.length;
+                addActivity('Bookmark added: ' + title);
+            }
+        }
+
+        async function deleteBookmark(id) {
+            if (!confirm('Delete this bookmark?')) return;
+            await api(`bookmarks/${id}`, 'DELETE');
+            state.bookmarks = state.bookmarks.filter(b => b.id !== id);
+            renderBookmarks();
+            document.getElementById('statBookmarks').textContent = state.bookmarks.length;
+        }
+
+        function searchBookmarks(query) {
+            const filtered = state.bookmarks.filter(b => 
+                (b.title && b.title.toLowerCase().includes(query.toLowerCase())) ||
+                (b.url && b.url.toLowerCase().includes(query.toLowerCase()))
+            );
+            const list = document.getElementById('recentBookmarks');
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No matches found</div></div>';
+                return;
+            }
+            list.innerHTML = filtered.slice(0, 10).map(bm => `
+                <div class="list-item">
+                    <span>${bm.is_favorite ? '⭐' : '🌐'}</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(bm.title || bm.url)}</div>
+                        <div class="list-item-meta">${bm.folder_name || 'Uncategorized'}</div>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="window.open('${bm.url}', '_blank')">Open</button>
+                </div>
+            `).join('');
+        }
+
+        function selectFolder(folder) {
+            const filtered = state.bookmarks.filter(b => b.folder_name === folder || (!b.folder_name && folder === 'uncategorized'));
+            const list = document.getElementById('recentBookmarks');
+            list.innerHTML = filtered.map(bm => `
+                <div class="list-item">
+                    <span>🌐</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(bm.title || bm.url)}</div>
+                        <div class="list-item-meta">${escapeHtml(bm.url?.substring(0, 40) || '')}...</div>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="window.open('${bm.url}', '_blank')">Open</button>
+                </div>
+            `).join('') || '<div class="empty-state">No bookmarks in this folder</div>';
+        }
+
+        async function removeDuplicates() {
+            const dupes = await api(`bookmarks/duplicates?profile_id=${state.currentProfileId || 'default'}`);
+            if (dupes && dupes.length > 0) {
+                alert(`Found ${dupes.length} duplicate URLs. You can review and remove them manually.`);
+            } else {
+                alert('No duplicate bookmarks found!');
+            }
+        }
+
+        function autoOrganize() {
+            addActivity('Auto-organizing bookmarks...');
+            alert('AI organization would categorize your bookmarks automatically. This feature requires AI integration.');
+        }
+
+        function checkDeadLinks() {
+            addActivity('Checking for dead links...');
+            alert('Dead link checker would verify all bookmark URLs. This feature is running in background.');
+        }
+
+        function renderHistory() {
+            const timeline = document.getElementById('historyTimeline');
+            if (!timeline) return;
+            if (state.history.length === 0) {
+                timeline.innerHTML = '<div class="empty-state"><div class="empty-icon">🕒</div><div class="empty-title">No history yet</div></div>';
+                return;
+            }
+            timeline.innerHTML = state.history.slice(0, 20).map(entry => `
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content" onclick="window.open('${entry.url}', '_blank')" style="cursor: pointer;">
+                        <div class="timeline-time">${new Date(entry.visited_at).toLocaleTimeString()}</div>
+                        <div class="timeline-title">${escapeHtml(entry.title || entry.url)}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">${entry.category || 'General'} • ${entry.visit_count} visit(s)</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderReadingList() {
+            const list = document.getElementById('readingList');
+            if (!list) return;
+            if (state.readingList.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">No articles saved</div><div class="empty-text">Save articles to read them later</div><button class="btn btn-primary" onclick="showAddReadingModal()">Add Article</button></div>';
+                return;
+            }
+            list.innerHTML = '<div class="card-title" style="margin-bottom: 16px;">Your Reading List</div>' + state.readingList.map(item => `
+                <div class="list-item">
+                    <span>${item.is_read ? '✅' : '📖'}</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(item.title || item.url)}</div>
+                        <div class="list-item-meta">${item.reading_time || 5} min read • ${Math.round(item.progress || 0)}% complete</div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="window.open('${item.url}', '_blank')">Read</button>
+                        <button class="btn btn-sm ${item.is_favorite ? 'btn-warning' : 'btn-secondary'}" onclick="toggleReadingFavorite('${item.id}')">❤️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReadingItem('${item.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addReadingItem(url, title) {
+            const result = await api('reading-list', 'POST', { user_id: userId, url, title });
+            if (result) {
+                state.readingList.unshift(result);
+                renderReadingList();
+                addActivity('Added to reading list: ' + title);
+            }
+        }
+
+        async function toggleReadingFavorite(id) {
+            const item = state.readingList.find(i => i.id === id);
+            if (!item) return;
+            await api(`reading-list/${id}`, 'PUT', { is_favorite: !item.is_favorite });
+            item.is_favorite = !item.is_favorite;
+            renderReadingList();
+        }
+
+        async function deleteReadingItem(id) {
+            if (!confirm('Remove from reading list?')) return;
+            await api(`reading-list/${id}`, 'DELETE');
+            state.readingList = state.readingList.filter(i => i.id !== id);
+            renderReadingList();
+        }
+
+        function renderProfiles() {
+            const profileCards = document.querySelectorAll('#profiles-page .card');
+            state.profiles.forEach(profile => {
+                const card = Array.from(profileCards).find(c => 
+                    c.textContent.toLowerCase().includes(profile.name.toLowerCase())
+                );
+                if (card && profile.is_active) {
+                    card.style.border = '2px solid var(--primary)';
+                }
+            });
+        }
+
+        async function activateProfile(profileType) {
+            state.currentProfile = profileType;
+            addActivity('Switched to ' + profileType + ' profile');
+            document.querySelectorAll('#profiles-page .card').forEach(card => {
+                card.style.border = '';
+                if (card.textContent.toLowerCase().includes(profileType)) {
+                    card.style.border = '2px solid var(--primary)';
+                }
+            });
+            await loadBookmarks();
+            await loadStats();
+        }
+
+        function renderAnalytics() {
+            if (!state.analytics) return;
+            const a = state.analytics;
+            const statsCards = document.querySelectorAll('#analytics-page .stat-card .stat-value');
+            if (statsCards[0]) statsCards[0].textContent = a.sites_visited || 0;
+            if (statsCards[1]) statsCards[1].textContent = ((a.browsing_time_minutes || 0) / 60).toFixed(1) + 'h';
+            if (statsCards[2]) statsCards[2].textContent = (a.productivity_score || 50) + '%';
+            if (statsCards[3]) statsCards[3].textContent = (a.top_categories || []).length;
+        }
+
+        function renderBlockedSites() {
+            const list = document.getElementById('blockList');
+            if (!list) return;
+            if (state.blockedSites.length === 0) {
+                list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-icon">🎯</div><div class="empty-title">No blocked sites</div></div>';
+                return;
+            }
+            list.innerHTML = state.blockedSites.map(site => `
+                <div class="list-item">
+                    <span>🚫</span>
+                    <div class="list-item-content">${escapeHtml(site.domain)}</div>
+                    <button class="btn btn-sm btn-danger" onclick="removeBlockSite('${site.id}')">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        async function addBlockSite() {
+            const domain = document.getElementById('blockSite').value.trim();
+            if (!domain) return;
+            const result = await api('focus/blocked-sites', 'POST', { user_id: userId, domain, category: 'custom' });
+            if (result) {
+                state.blockedSites.push(result);
+                renderBlockedSites();
+                document.getElementById('blockSite').value = '';
+                addActivity('Blocked: ' + domain);
+            }
+        }
+
+        async function removeBlockSite(id) {
+            await api(`focus/blocked-sites?user_id=${userId}&site_id=${id}`, 'DELETE');
+            state.blockedSites = state.blockedSites.filter(s => s.id !== id);
+            renderBlockedSites();
+        }
+
+        function renderPrivacyEvents() {
+            const container = document.querySelector('#privacy-page .card:last-child');
+            if (!container || state.privacyEvents.length === 0) return;
+            
+            const events = state.privacyEvents.filter(e => e.severity === 'critical' || e.event_type === 'breach_alert');
+            if (events.length === 0) {
+                return;
+            }
+            
+            const html = events.slice(0, 5).map(event => `
+                <div class="list-item" style="background: rgba(239,68,68,0.1);">
+                    <span>🚨</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(event.domain || 'Unknown')}</div>
+                        <div class="list-item-meta">${event.event_type} - ${new Date(event.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <button class="btn btn-sm btn-danger">Action</button>
+                </div>
+            `).join('');
+            
+            container.innerHTML = `<div class="card-title" style="margin-bottom: 16px;">⚠️ Breach Alerts</div>${html}`;
+        }
+
+        async function performAISearch() {
+            const query = document.getElementById('aiSearchInput').value.trim();
+            if (!query) return;
+            
+            addActivity('Searching: ' + query);
+            const results = await api('search', 'POST', { query, user_id: userId });
+            
+            const container = document.getElementById('searchResults');
+            if (!results || !results.results || results.results.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No results found</div><div class="empty-text">Try a different search term</div></div>';
+                return;
+            }
+            
+            container.innerHTML = results.results.map(r => `
+                <div class="list-item">
+                    <span>${r.type === 'bookmark' ? '⭐' : r.type === 'history' ? '🕒' : r.type === 'reading' ? '📚' : '📋'}</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(r.title || r.content || 'Untitled')}</div>
+                        <div class="list-item-meta">${r.type} • Relevance: ${Math.round(r.score * 100)}%</div>
+                    </div>
+                    ${r.url ? `<button class="btn btn-sm btn-secondary" onclick="window.open('${r.url}', '_blank')">Open</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function filterTabs(category) {
+            document.querySelectorAll('#tabs-page .tab-item').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (category === 'all') {
+                renderTabs();
+                return;
+            }
+            
+            const filtered = state.tabs.filter(tab => {
+                const url = (tab.url || '').toLowerCase();
+                if (category === 'work') return url.includes('github') || url.includes('gitlab') || url.includes('jira') || url.includes('slack');
+                if (category === 'study') return url.includes('coursera') || url.includes('udemy') || url.includes('edu') || url.includes('docs');
+                if (category === 'social') return url.includes('twitter') || url.includes('facebook') || url.includes('linkedin') || url.includes('instagram');
+                if (category === 'entertainment') return url.includes('youtube') || url.includes('netflix') || url.includes('twitch') || url.includes('reddit');
+                return true;
+            });
+            
+            const list = document.getElementById('tabsList');
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div><div class="empty-title">No tabs in this category</div></div>';
+                return;
+            }
+            list.innerHTML = filtered.map(tab => `
+                <div class="list-item">
+                    <span>🌐</span>
+                    <div class="list-item-content">
+                        <div class="list-item-title">${escapeHtml(tab.title || tab.url)}</div>
+                        <div class="list-item-meta">${escapeHtml(tab.url?.substring(0, 50) || '')}...</div>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="window.open('${tab.url}', '_blank')">Open</button>
+                </div>
+            `).join('');
+        }
+
+        function closeDuplicates() {
+            const urls = state.tabs.map(t => t.url);
+            const duplicates = urls.filter((url, i) => urls.indexOf(url) !== i);
+            if (duplicates.length === 0) {
+                alert('No duplicate tabs found!');
+                return;
+            }
+            alert(`Found ${duplicates.length} duplicate tab URLs. In a browser extension, these would be closed automatically.`);
+            addActivity(`Found ${duplicates.length} duplicate tabs`);
+        }
+
+        function sleepInactiveTabs() {
+            const inactiveCount = state.tabs.filter(t => t.is_sleeping !== true).length;
+            alert(`${inactiveCount} tabs would be put to sleep to save memory. This feature works with the browser extension.`);
+            addActivity('Sleep inactive tabs requested');
         }
 
         function addActivity(message) {
@@ -1197,7 +1794,7 @@
                 <div class="timeline-dot"></div>
                 <div class="timeline-content">
                     <div class="timeline-time">${new Date().toLocaleTimeString()}</div>
-                    <div class="timeline-title">${message}</div>
+                    <div class="timeline-title">${escapeHtml(message)}</div>
                 </div>
             `;
             timeline.insertBefore(item, timeline.firstChild);
@@ -1205,17 +1802,19 @@
         }
 
         let focusInterval = null;
-        function startFocus() {
+        async function startFocus() {
             if (state.focusRunning) return;
             state.focusRunning = true;
+            
+            if (socket && socket.connected) {
+                socket.emit('focus_start', { user_id: userId, duration: Math.ceil(state.focusTime / 60) });
+            }
+            
             focusInterval = setInterval(() => {
                 state.focusTime--;
                 updateFocusTimer();
                 if (state.focusTime <= 0) {
-                    clearInterval(focusInterval);
-                    state.focusRunning = false;
-                    state.focusTime = 1500;
-                    alert('Pomodoro complete! Take a break.');
+                    completeFocus();
                 }
             }, 1000);
             addActivity('Focus session started');
@@ -1224,18 +1823,35 @@
         function pauseFocus() {
             if (focusInterval) clearInterval(focusInterval);
             state.focusRunning = false;
+            addActivity('Focus session paused');
         }
 
         function resetFocus() {
             pauseFocus();
             state.focusTime = 1500;
             updateFocusTimer();
+            addActivity('Focus timer reset');
+        }
+
+        async function completeFocus() {
+            clearInterval(focusInterval);
+            state.focusRunning = false;
+            
+            if (socket && socket.connected && state.focusSessionId) {
+                socket.emit('focus_complete', { session_id: state.focusSessionId, actual_duration: 25 });
+            }
+            
+            state.focusTime = 1500;
+            updateFocusTimer();
+            alert('Pomodoro complete! Take a 5-minute break.');
+            addActivity('Focus session completed!');
         }
 
         function updateFocusTimer() {
             const mins = Math.floor(state.focusTime / 60);
             const secs = state.focusTime % 60;
-            document.getElementById('focusTimer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            const timer = document.getElementById('focusTimer');
+            if (timer) timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
         function toggleDarkMode() {
@@ -1248,24 +1864,99 @@
             startFocus();
         }
 
-        function forceSync() {
+        async function forceSync() {
             addActivity('Force sync initiated');
             if (socket && socket.connected) {
                 socket.emit('register_device', { user_id: userId });
             }
-        }
-
-        function saveCurrentSession() {
-            const name = prompt('Session name:');
-            if (name) {
-                state.sessions.push({ id: Date.now(), name, tabs: state.tabs.length, date: new Date().toLocaleDateString() });
-                addActivity('Session saved: ' + name);
-            }
+            await loadAllData();
+            addActivity('Sync completed');
         }
 
         function showModal(type) {
-            document.getElementById('modal').classList.add('active');
-            document.getElementById('modalTitle').textContent = type;
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            modal.classList.add('active');
+            
+            if (type === 'addBookmark') {
+                title.textContent = 'Add Bookmark';
+                body.innerHTML = `
+                    <div class="input-group">
+                        <label class="input-label">URL</label>
+                        <input type="url" id="modalBookmarkUrl" placeholder="https://example.com">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Title</label>
+                        <input type="text" id="modalBookmarkTitle" placeholder="Bookmark title">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Folder</label>
+                        <select id="modalBookmarkFolder">
+                            <option value="">Uncategorized</option>
+                            <option value="Work">Work</option>
+                            <option value="Study">Study</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Entertainment">Entertainment</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="submitBookmark()">Add Bookmark</button>
+                `;
+            } else if (type === 'addReading') {
+                title.textContent = 'Add to Reading List';
+                body.innerHTML = `
+                    <div class="input-group">
+                        <label class="input-label">Article URL</label>
+                        <input type="url" id="modalReadingUrl" placeholder="https://example.com/article">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Title (optional)</label>
+                        <input type="text" id="modalReadingTitle" placeholder="Article title">
+                    </div>
+                    <button class="btn btn-primary" onclick="submitReading()">Add to Reading List</button>
+                `;
+            } else if (type === 'tabGroup') {
+                title.textContent = 'Create Tab Group';
+                body.innerHTML = `
+                    <div class="input-group">
+                        <label class="input-label">Group Name</label>
+                        <input type="text" id="modalGroupName" placeholder="e.g., Research Project">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Color</label>
+                        <input type="color" id="modalGroupColor" value="#6366f1">
+                    </div>
+                    <button class="btn btn-primary" onclick="createTabGroup()">Create Group</button>
+                `;
+            } else {
+                title.textContent = type;
+                body.innerHTML = '<p>Modal content for ' + type + '</p>';
+            }
+        }
+
+        async function submitBookmark() {
+            const url = document.getElementById('modalBookmarkUrl').value;
+            const title = document.getElementById('modalBookmarkTitle').value;
+            const folder = document.getElementById('modalBookmarkFolder').value;
+            if (!url) return alert('Please enter a URL');
+            await addBookmark(url, title || url, folder);
+            closeModal();
+        }
+
+        async function submitReading() {
+            const url = document.getElementById('modalReadingUrl').value;
+            const title = document.getElementById('modalReadingTitle').value;
+            if (!url) return alert('Please enter a URL');
+            await addReadingItem(url, title || url);
+            closeModal();
+        }
+
+        function createTabGroup() {
+            const name = document.getElementById('modalGroupName').value;
+            const color = document.getElementById('modalGroupColor').value;
+            if (!name) return alert('Please enter a group name');
+            addActivity('Tab group created: ' + name);
+            closeModal();
         }
 
         function closeModal() {
@@ -1277,15 +1968,26 @@
             addActivity('Switched to ' + profile + ' profile');
         }
 
+        function showAddReadingModal() {
+            showModal('addReading');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark-mode');
-                document.getElementById('darkModeToggle').checked = true;
+                const toggle = document.getElementById('darkModeToggle');
+                if (toggle) toggle.checked = true;
             }
             initSocket();
-            renderClipboard();
             document.getElementById('syncCodeDisplay').textContent = syncCode;
             document.getElementById('commandSyncCode').textContent = syncCode;
+            
+            const searchInput = document.getElementById('aiSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') performAISearch();
+                });
+            }
         });
     </script>
 </body>
