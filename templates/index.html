@@ -122,6 +122,7 @@
             .cards-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
 </head>
 <body>
     <div class="sidebar" id="sidebar">
@@ -655,20 +656,24 @@
             const cmd = document.getElementById('cmdInput').value;
             if (!cmd) return alert('Enter command');
 
-            // Send via WebSocket if available, otherwise local execution
-            if (typeof socket !== 'undefined' && socket) {
+            // Send via WebSocket if available
+            if (typeof socket !== 'undefined' && socket && socket.connected) {
                 socket.emit('send_command', {
                     command: cmd,
-                    user_id: 'guest'
+                    user_id: userId
                 });
+                state.commandsToday++;
+                document.getElementById('cmdInput').value = '';
+                addActivityLog('Command sent: ' + cmd);
+                updateStats();
+            } else {
+                // Fallback to local execution if not connected
+                executeCommand(cmd);
+                state.commandsToday++;
+                document.getElementById('cmdInput').value = '';
+                addActivityLog('Command executed locally: ' + cmd);
+                updateStats();
             }
-
-            // Execute locally
-            executeCommand(cmd);
-            state.commandsToday++;
-            document.getElementById('cmdInput').value = '';
-            addActivityLog('Command sent: ' + cmd);
-            updateStats();
         }
 
         function executeCommand(cmd) {
@@ -718,6 +723,8 @@
 
         // WebSocket Setup
         let socket = null;
+        let userId = localStorage.getItem('neura_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('neura_user_id', userId);
 
         function initSocket() {
             try {
@@ -730,9 +737,23 @@
 
                 socket.on('connect', () => {
                     console.log('✓ Connected to server');
+                    
+                    // Register this device with the user's ID
+                    socket.emit('register_device', { user_id: userId });
+                    
                     addActivityLog('Connected to server');
                     document.getElementById('statusDot').classList.add('active');
                     document.getElementById('statusText').textContent = 'Connected';
+                });
+                
+                socket.on('device_registered', (data) => {
+                    console.log('📱 Device registered:', data);
+                    addActivityLog('Device registered - ' + data.device_count + ' device(s) synced');
+                    document.getElementById('statusText').textContent = 'Connected (' + data.device_count + ')';
+                });
+                
+                socket.on('device_count', (data) => {
+                    document.getElementById('statusText').textContent = 'Connected (' + data.count + ')';
                 });
 
                 socket.on('disconnect', () => {

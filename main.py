@@ -3,7 +3,7 @@ import json
 import uuid
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, send_file
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -121,6 +121,7 @@ class ProductivityLog(db.Model):
 # ==================== WEBSOCKET EVENTS ====================
 
 connected_clients = {}
+user_devices = {}
 
 @socketio.on('connect')
 def handle_connect():
@@ -133,11 +134,45 @@ def handle_connect():
     emit('connection_response', {'message': 'Connected', 'client_id': client_id})
     socketio.emit('client_count', {'count': len(connected_clients)})
 
+@socketio.on('register_device')
+def handle_register_device(data):
+    client_id = request.sid
+    user_id = data.get('user_id', 'guest')
+    
+    connected_clients[client_id]['user_id'] = user_id
+    join_room(user_id)
+    
+    if user_id not in user_devices:
+        user_devices[user_id] = set()
+    user_devices[user_id].add(client_id)
+    
+    device_count = len(user_devices.get(user_id, set()))
+    print(f'📱 Device registered: {client_id[:8]} for user {user_id} | Devices: {device_count}')
+    
+    emit('device_registered', {
+        'user_id': user_id,
+        'device_count': device_count,
+        'client_id': client_id
+    })
+    
+    socketio.emit('device_count', {'count': device_count}, room=user_id)
+
 @socketio.on('disconnect')
 def handle_disconnect():
     client_id = request.sid
+    user_id = None
+    
     if client_id in connected_clients:
+        user_id = connected_clients[client_id].get('user_id')
         del connected_clients[client_id]
+    
+    if user_id and user_id in user_devices:
+        user_devices[user_id].discard(client_id)
+        if not user_devices[user_id]:
+            del user_devices[user_id]
+        else:
+            socketio.emit('device_count', {'count': len(user_devices[user_id])}, room=user_id)
+    
     print(f'✗ Client disconnected: {client_id} | Total: {len(connected_clients)}')
     socketio.emit('client_count', {'count': len(connected_clients)})
 
@@ -192,20 +227,26 @@ def handle_command(data):
             'device_count': len(connected_clients)
         }
 
-        print(f'📤 Broadcasting command: {command} to {len(connected_clients)} clients')
+        device_count = len(user_devices.get(user_id, set())) if user_id in user_devices else len(connected_clients)
+        payload['device_count'] = device_count
+        
+        print(f'📤 Broadcasting command: {command} to user {user_id} ({device_count} devices)')
 
-        # Broadcast to ALL clients (including sender)
-        socketio.emit('command_received', payload)
+        # Broadcast to all devices of this user (room-based)
+        if user_id and user_id in user_devices:
+            socketio.emit('command_received', payload, room=user_id)
+        else:
+            socketio.emit('command_received', payload)
 
         # Send acknowledgment to sender
         emit('command_ack', {
             'status': 'success',
             'command_id': cmd_id,
-            'message': f'Command sent to {len(connected_clients)} device(s)',
-            'total_clients': len(connected_clients)
+            'message': f'Command sent to {device_count} device(s)',
+            'total_clients': device_count
         })
 
-        print(f'✓ Command broadcast complete: {command} ({len(connected_clients)} devices)')
+        print(f'✓ Command broadcast complete: {command} ({device_count} devices)')
 
     except Exception as e:
         print(f'❌ Command Error: {e}')
