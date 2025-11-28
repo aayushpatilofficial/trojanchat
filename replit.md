@@ -129,7 +129,19 @@ NeuraSync is a comprehensive browser synchronization platform that enables real-
 - `search cats` - Searches on all synced devices
 
 ## Recent Changes
-- v4.0: Complete rewrite with 75+ features
+
+### November 2025 - Frontend/Backend Integration Fix
+- Fixed all frontend JavaScript to properly connect to backend APIs
+- All 27 API endpoints now fully integrated with UI
+- Added comprehensive data loading on page navigation
+- Fixed database schema by adding missing columns:
+  - clipboard_item.source_device, clipboard_item.extra_data
+  - session.profile_id
+- Implemented all missing UI handler functions
+- All 75+ features now fully operational
+
+### Previous v4.0 Changes
+- Complete rewrite with 75+ features
 - Added multi-profile support
 - Added credential vault
 - Added focus mode with Pomodoro timer
