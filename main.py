@@ -146,6 +146,7 @@ def handle_command(data):
     try:
         command = data.get('command', '').strip()
         user_id = data.get('user_id', 'anonymous')
+        sender_id = request.sid
 
         if not command:
             emit('error', {'message': 'Empty command'})
@@ -177,40 +178,34 @@ def handle_command(data):
         except:
             cmd_id = str(uuid.uuid4())
 
-        # Broadcast to SENDER first
-        emit('command_received', {
+        timestamp = datetime.utcnow().isoformat()
+
+        # Prepare command payload
+        payload = {
             'command': command,
             'cmd_type': cmd_type,
             'details': cmd_details,
-            'timestamp': datetime.utcnow().isoformat(),
-            'sender': request.sid[:8],
+            'timestamp': timestamp,
+            'sender': sender_id[:8],
             'command_id': cmd_id,
-            'status': 'executing'
-        }, room=request.sid)
+            'status': 'executing',
+            'device_count': len(connected_clients)
+        }
 
-        print(f'📤 Command executing: {command}')
+        print(f'📤 Broadcasting command: {command} to {len(connected_clients)} clients')
 
-        # Send to all OTHER clients
-        for client_id in list(connected_clients.keys()):
-            if client_id != request.sid:
-                socketio.emit('command_received', {
-                    'command': command,
-                    'cmd_type': cmd_type,
-                    'details': cmd_details,
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'sender': request.sid[:8],
-                    'command_id': cmd_id,
-                    'status': 'executing'
-                }, room=client_id)
+        # Broadcast to ALL clients (including sender)
+        socketio.emit('command_received', payload)
 
-        # Send acknowledgment
+        # Send acknowledgment to sender
         emit('command_ack', {
             'status': 'success',
             'command_id': cmd_id,
-            'message': f'Command "{command}" sent to {len(connected_clients)} device(s)'
+            'message': f'Command sent to {len(connected_clients)} device(s)',
+            'total_clients': len(connected_clients)
         })
 
-        print(f'✓ Command broadcast complete: {command}')
+        print(f'✓ Command broadcast complete: {command} ({len(connected_clients)} devices)')
 
     except Exception as e:
         print(f'❌ Command Error: {e}')
