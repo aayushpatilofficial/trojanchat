@@ -256,6 +256,10 @@ def handle_productivity_update(data):
 
 # ==================== REST API ENDPOINTS ====================
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok', 'version': '3.0'}), 200
