@@ -400,15 +400,34 @@
                     <h1>📤 Commands</h1>
                     <p>Send commands to connected devices</p>
                 </div>
+                
+                <div class="section" style="background: linear-gradient(135deg, #dbeafe, #ede9fe); border: 2px solid var(--primary);">
+                    <div class="section-title">🔗 Device Sync Code</div>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Use the same sync code on all your devices to sync commands between them</p>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <label class="input-label">Your Sync Code</label>
+                            <input type="text" id="syncCodeInput" placeholder="Enter sync code..." style="font-family: monospace; font-size: 16px;">
+                        </div>
+                        <button class="btn btn-success" onclick="setSyncCode()">🔗 Connect</button>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 6px;">
+                        <span style="font-size: 11px; color: var(--text-secondary);">Current Sync Code: </span>
+                        <span id="currentSyncCode" style="font-family: monospace; font-weight: bold; color: var(--primary);"></span>
+                        <span id="deviceCountBadge" class="badge success" style="margin-left: 10px;"></span>
+                    </div>
+                </div>
+                
                 <div class="section">
                     <div class="section-title">Send Command</div>
                     <div class="input-group">
                         <div class="input-wrapper">
                             <label class="input-label">Command</label>
-                            <input type="text" id="cmdInput" placeholder="Type command...">
+                            <input type="text" id="cmdInput" placeholder="Type command... (e.g., open google.com)">
                         </div>
-                        <button class="btn" onclick="sendCommand()">📤 Send</button>
+                        <button class="btn" onclick="sendCommand()">📤 Send to All Devices</button>
                     </div>
+                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 8px;">Commands: <code>open [url]</code> or <code>search [query]</code></p>
                 </div>
             </div>
         </div>
@@ -721,9 +740,44 @@
             document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', { hour12: false });
         }
 
+        // Sync Code Functions
+        function generateSyncCode() {
+            return Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+        
+        function setSyncCode() {
+            const input = document.getElementById('syncCodeInput').value.trim().toUpperCase();
+            if (input && input.length >= 4) {
+                savedSyncCode = input;
+                userId = 'room_' + input;
+                localStorage.setItem('neura_sync_code', input);
+                localStorage.setItem('neura_user_id', userId);
+                updateSyncCodeDisplay();
+                
+                // Re-register with new sync code
+                if (socket && socket.connected) {
+                    socket.emit('register_device', { user_id: userId });
+                }
+                addActivityLog('Sync code set: ' + input);
+            } else {
+                alert('Please enter a sync code (at least 4 characters)');
+            }
+        }
+        
+        function updateSyncCodeDisplay() {
+            const syncCode = localStorage.getItem('neura_sync_code') || savedSyncCode;
+            document.getElementById('currentSyncCode').textContent = syncCode.toUpperCase();
+            document.getElementById('syncCodeInput').value = syncCode.toUpperCase();
+        }
+
         // WebSocket Setup
         let socket = null;
-        let userId = localStorage.getItem('neura_user_id') || 'user_' + Math.random().toString(36).substr(2, 9);
+        let savedSyncCode = localStorage.getItem('neura_sync_code');
+        if (!savedSyncCode) {
+            savedSyncCode = generateSyncCode();
+            localStorage.setItem('neura_sync_code', savedSyncCode);
+        }
+        let userId = 'room_' + savedSyncCode;
         localStorage.setItem('neura_user_id', userId);
 
         function initSocket() {
@@ -750,10 +804,12 @@
                     console.log('📱 Device registered:', data);
                     addActivityLog('Device registered - ' + data.device_count + ' device(s) synced');
                     document.getElementById('statusText').textContent = 'Connected (' + data.device_count + ')';
+                    document.getElementById('deviceCountBadge').textContent = data.device_count + ' device(s) synced';
                 });
                 
                 socket.on('device_count', (data) => {
                     document.getElementById('statusText').textContent = 'Connected (' + data.count + ')';
+                    document.getElementById('deviceCountBadge').textContent = data.count + ' device(s) synced';
                 });
 
                 socket.on('disconnect', () => {
@@ -791,6 +847,7 @@
             renderClipboard();
             renderActivityLog();
             updateStats();
+            updateSyncCodeDisplay();
             addActivityLog('Neura Sync v3.0 initialized');
             initSocket();
             setInterval(updateTime, 1000);
