@@ -16,16 +16,16 @@ import math
 import re
 import os
 import json
-from openai import OpenAI
+from google import genai
+from google.genai import types
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'trojan-exhibition-secret-key-2025'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# the newest OpenAI model is "gpt-5" which was released August 7, 2025.
-# do not change this unless explicitly requested by the user
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+# Using Gemini AI - blueprint:python_gemini
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 # ============================================================================
 # GLOBAL STATE MANAGEMENT
@@ -262,28 +262,23 @@ class SimulatedAIAnalyzer:
 
 
 # ============================================================================
-# REAL AI ANALYZER - USES OPENAI FOR INTELLIGENT ANALYSIS
+# REAL AI ANALYZER - USES GEMINI FOR INTELLIGENT ANALYSIS
 # ============================================================================
 
 class RealAIAnalyzer:
     """
-    Uses OpenAI GPT to perform real AI analysis on messages.
+    Uses Google Gemini to perform real AI analysis on messages.
     Provides intelligent summaries, insights, and conversation understanding.
     """
     
     @staticmethod
     def analyze_message(text):
         """Analyze a single message with AI to get insights."""
-        if not openai_client:
+        if not gemini_client:
             return None
         
         try:
-            response = openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """You are an AI analyst for a chat monitoring system. Analyze the given message and provide:
+            system_prompt = """You are an AI analyst for a chat monitoring system. Analyze the given message and provide:
 1. sentiment: overall emotional tone (positive/negative/neutral)
 2. sentiment_score: 0-100 where 0=very negative, 50=neutral, 100=very positive
 3. primary_emotion: the main emotion detected (happy, sad, angry, fearful, excited, neutral, curious, frustrated)
@@ -294,13 +289,18 @@ class RealAIAnalyzer:
 
 Respond ONLY with valid JSON in this exact format:
 {"sentiment": "string", "sentiment_score": number, "primary_emotion": "string", "intent": "string", "key_topics": ["topic1", "topic2"], "psychological_insight": "string", "risk_level": "string"}"""
-                    },
-                    {"role": "user", "content": text}
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=text)])
                 ],
-                response_format={"type": "json_object"},
-                max_completion_tokens=500
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
             )
-            content = response.choices[0].message.content
+            content = response.text
             if content:
                 result = json.loads(content)
                 return result
@@ -312,7 +312,7 @@ Respond ONLY with valid JSON in this exact format:
     @staticmethod
     def generate_conversation_summary(messages):
         """Generate an intelligent summary of the conversation so far."""
-        if not openai_client or not messages:
+        if not gemini_client or not messages:
             return None
         
         conversation_text = "\n".join([
@@ -321,12 +321,7 @@ Respond ONLY with valid JSON in this exact format:
         ])
         
         try:
-            response = openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """You are an AI conversation analyst. Analyze the chat conversation and provide a comprehensive summary with:
+            system_prompt = """You are an AI conversation analyst. Analyze the chat conversation and provide a comprehensive summary with:
 1. overview: 2-3 sentence summary of what's being discussed
 2. mood: overall emotional atmosphere of the conversation (cheerful, tense, casual, serious, playful, etc)
 3. participants_dynamics: brief observation about how participants are interacting
@@ -337,13 +332,18 @@ Respond ONLY with valid JSON in this exact format:
 
 Respond ONLY with valid JSON in this exact format:
 {"overview": "string", "mood": "string", "participants_dynamics": "string", "main_themes": ["theme1", "theme2"], "notable_patterns": "string", "concerns": "string", "prediction": "string"}"""
-                    },
-                    {"role": "user", "content": f"Analyze this conversation:\n\n{conversation_text}"}
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=f"Analyze this conversation:\n\n{conversation_text}")])
                 ],
-                response_format={"type": "json_object"},
-                max_completion_tokens=800
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
             )
-            content = response.choices[0].message.content
+            content = response.text
             if content:
                 result = json.loads(content)
                 return result
@@ -355,7 +355,7 @@ Respond ONLY with valid JSON in this exact format:
     @staticmethod
     def get_ai_thoughts(text, context_messages=None):
         """Get AI 'thoughts' about a message - what an AI might be thinking."""
-        if not openai_client:
+        if not gemini_client:
             return None
         
         context = ""
@@ -366,12 +366,7 @@ Respond ONLY with valid JSON in this exact format:
             ]) + "\n\n"
         
         try:
-            response = openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": """You are demonstrating how an AI surveillance system might "think" about messages it observes. 
+            system_prompt = """You are demonstrating how an AI surveillance system might "think" about messages it observes. 
 This is for educational purposes to show users how AI systems analyze their communications.
 
 When given a message, respond with your "thoughts" as if you were an AI monitoring system, including:
@@ -385,13 +380,18 @@ Be educational and thought-provoking. Show users what hidden AI systems might be
 
 Respond ONLY with valid JSON:
 {"thought": "string", "flags": ["flag1", "flag2"], "inferences": ["inference1", "inference2"], "data_points": ["data1", "data2"], "concern_level": number}"""
-                    },
-                    {"role": "user", "content": f"{context}New message to analyze: \"{text}\""}
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=f"{context}New message to analyze: \"{text}\"")])
                 ],
-                response_format={"type": "json_object"},
-                max_completion_tokens=600
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
             )
-            content = response.choices[0].message.content
+            content = response.text
             if content:
                 result = json.loads(content)
                 return result
@@ -510,12 +510,12 @@ def handle_message(data):
         room.analysis_data['mood_shifts']
     )
 
-    # ====== REAL AI ANALYSIS (OPENAI) ======
+    # ====== REAL AI ANALYSIS (GEMINI) ======
     ai_analysis = None
     ai_thoughts = None
     ai_summary = None
     
-    if openai_client:
+    if gemini_client:
         ai_analysis = RealAIAnalyzer.analyze_message(text)
         ai_thoughts = RealAIAnalyzer.get_ai_thoughts(text, room.messages[-6:-1])
         if len(room.messages) >= 3 and len(room.messages) % 3 == 0:
