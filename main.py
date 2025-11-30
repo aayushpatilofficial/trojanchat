@@ -279,7 +279,7 @@ class RealAIAnalyzer:
         
         try:
             response = openai_client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "system",
@@ -322,7 +322,7 @@ Respond ONLY with valid JSON in this exact format:
         
         try:
             response = openai_client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "system",
@@ -367,7 +367,7 @@ Respond ONLY with valid JSON in this exact format:
         
         try:
             response = openai_client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "system",
