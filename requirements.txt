@@ -24,3 +24,9 @@ Eventlet==0.33.3
 # black==23.7.0
 openai
 google-genai
+email-validator
+Flask-Dance
+Flask-Login
+Flask-SQLAlchemy
+PyJWT
+sift-stack-py
