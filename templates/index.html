@@ -3,1992 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuraSync - Ultimate Browser Sync</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #6366f1;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #06b6d4;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        body.dark-mode {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
-        }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-secondary); color: var(--text-primary); min-height: 100vh; }
-        
-        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: var(--bg-primary); border-right: 1px solid var(--border-color); overflow-y: auto; z-index: 1000; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-color); background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
-        .sidebar-logo { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-        .sidebar-logo span { font-size: 28px; }
-        .sidebar-version { font-size: 11px; opacity: 0.8; margin-top: 4px; }
-        .nav-section { padding: 12px 0; }
-        .nav-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); padding: 8px 20px; letter-spacing: 0.5px; }
-        .nav-item { padding: 10px 20px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500; transition: all 0.2s; border-left: 3px solid transparent; }
-        .nav-item:hover { background: var(--bg-secondary); color: var(--primary); }
-        .nav-item.active { background: linear-gradient(90deg, rgba(99,102,241,0.1), transparent); color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
-        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-        .nav-badge { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
-        
-        .main-content { margin-left: 260px; min-height: 100vh; }
-        .topbar { background: var(--bg-primary); border-bottom: 1px solid var(--border-color); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .topbar-title { font-size: 20px; font-weight: 700; }
-        .topbar-right { display: flex; align-items: center; gap: 16px; }
-        .sync-status { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-secondary); border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
-        .sync-dot.active { background: var(--success); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .profile-btn { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
-        
-        .container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-        .page-header { margin-bottom: 24px; }
-        .page-header h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-        .page-header p { color: var(--text-secondary); font-size: 14px; }
-        
-        .grid { display: grid; gap: 20px; }
-        .grid-2 { grid-template-columns: repeat(2, 1fr); }
-        .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        .grid-4 { grid-template-columns: repeat(4, 1fr); }
-        @media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .sidebar { display: none; } .main-content { margin-left: 0; } }
-        
-        .card { background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.2s; }
-        .card:hover { box-shadow: var(--shadow); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .card-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .card-icon { font-size: 20px; }
-        
-        .stat-card { text-align: center; padding: 24px; }
-        .stat-icon { font-size: 32px; margin-bottom: 12px; }
-        .stat-value { font-size: 36px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; font-weight: 600; }
-        
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
-        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-sm { padding: 6px 12px; font-size: 11px; }
-        
-        .input-group { margin-bottom: 16px; }
-        .input-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; }
-        input, textarea, select { width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--bg-primary); color: var(--text-primary); transition: all 0.2s; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
-        
-        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-primary { background: rgba(99,102,241,0.1); color: var(--primary); }
-        .badge-success { background: rgba(16,185,129,0.1); color: var(--success); }
-        .badge-warning { background: rgba(245,158,11,0.1); color: var(--warning); }
-        .badge-danger { background: rgba(239,68,68,0.1); color: var(--danger); }
-        
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; background: var(--bg-secondary); margin-bottom: 8px; transition: all 0.2s; }
-        .list-item:hover { background: rgba(99,102,241,0.05); }
-        .list-item-icon { font-size: 24px; }
-        .list-item-content { flex: 1; }
-        .list-item-title { font-weight: 600; font-size: 14px; }
-        .list-item-meta { font-size: 12px; color: var(--text-secondary); }
-        .list-item-actions { display: flex; gap: 8px; }
-        
-        .tab-group { display: flex; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-        .tab-item { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
-        .tab-item:hover { background: var(--bg-primary); }
-        .tab-item.active { background: var(--bg-primary); color: var(--primary); font-weight: 600; box-shadow: var(--shadow); }
-        
-        .device-card { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 12px; }
-        .device-icon { font-size: 32px; }
-        .device-info { flex: 1; }
-        .device-name { font-weight: 600; }
-        .device-meta { font-size: 12px; color: var(--text-secondary); }
-        .device-status { width: 10px; height: 10px; border-radius: 50%; }
-        .device-status.online { background: var(--success); }
-        .device-status.offline { background: var(--text-secondary); }
-        
-        .timeline { position: relative; padding-left: 30px; }
-        .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: var(--border-color); }
-        .timeline-item { position: relative; padding-bottom: 20px; }
-        .timeline-dot { position: absolute; left: -24px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); border: 2px solid var(--bg-primary); }
-        .timeline-content { background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; }
-        .timeline-time { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
-        .timeline-title { font-weight: 600; font-size: 14px; }
-        
-        .progress-ring { width: 120px; height: 120px; margin: 0 auto; }
-        .progress-ring circle { fill: none; stroke-width: 8; }
-        .progress-ring .bg { stroke: var(--border-color); }
-        .progress-ring .progress { stroke: var(--primary); stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; transition: stroke-dashoffset 0.5s; }
-        
-        .sync-code-box { background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); border: 2px dashed var(--primary); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; }
-        .sync-code { font-size: 32px; font-weight: 800; font-family: monospace; letter-spacing: 4px; color: var(--primary); }
-        
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-        .feature-item { background: var(--bg-secondary); padding: 16px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .feature-item:hover { background: rgba(99,102,241,0.1); transform: translateY(-2px); }
-        .feature-icon { font-size: 28px; margin-bottom: 8px; }
-        .feature-name { font-size: 12px; font-weight: 600; }
-        
-        .page-content { display: none; }
-        .page-content.active { display: block; }
-        
-        .quick-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-        
-        .search-box { position: relative; }
-        .search-box input { padding-left: 44px; }
-        .search-box::before { content: '🔍'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--bg-primary); border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-title { font-size: 20px; font-weight: 700; }
-        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); }
-        
-        .empty-state { text-align: center; padding: 60px 20px; }
-        .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
-        .empty-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-        .empty-text { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
-    </style>
+    <title>TrojanChat - Secure Messaging</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo"><span>⚡</span> NeuraSync</div>
-            <div class="sidebar-version">Universal Browser Sync v4.0</div>
+    <!-- MAIN CHAT INTERFACE -->
+    <div class="container" id="mainContainer">
+        <!-- THEME TOGGLE -->
+        <div class="theme-toggle">
+            <button id="themeBtn" class="theme-btn" title="Toggle Dark/Light Mode">
+                <span class="theme-icon">🌙</span>
+            </button>
+            <a href="/awareness" class="awareness-link" title="Learn about Trojans & Cyber Security">
+                <span class="info-icon">ⓘ</span>
+            </a>
         </div>
-        <nav>
-            <div class="nav-section">
-                <div class="nav-section-title">Overview</div>
-                <div class="nav-item active" onclick="switchPage('dashboard')"><span class="icon">📊</span> Dashboard</div>
-                <div class="nav-item" onclick="switchPage('devices')"><span class="icon">📱</span> Devices <span class="nav-badge" id="deviceBadge">1</span></div>
-                <div class="nav-item" onclick="switchPage('sync')"><span class="icon">🔄</span> Sync Center</div>
-            </div>
-            <div class="nav-section">
-                <div class="nav-section-title">Browser Data</div>
-                <div class="nav-item" onclick="switchPage('tabs')"><span class="icon">🗂️</span> Tab Manager</div>
-                <div class="nav-item" onclick="switchPage('bookmarks')"><span class="icon">⭐</span> Bookmarks</div>
-                <div class="nav-item" onclick="switchPage('history')"><span class="icon">🕒</span> History Timeline</div>
-                <div class="nav-item" onclick="switchPage('reading')"><span class="icon">📚</span> Reading List</div>
-            </div>
-            <div class="nav-section">
-                <div class="nav-section-title">Tools</div>
-                <div class="nav-item" onclick="switchPage('clipboard')"><span class="icon">📋</span> Cloud Clipboard</div>
-                <div class="nav-item" onclick="switchPage('search')"><span class="icon">🔍</span> AI Search</div>
-                <div class="nav-item" onclick="switchPage('commands')"><span class="icon">📤</span> Commands</div>
-            </div>
-            <div class="nav-section">
-                <div class="nav-section-title">Productivity</div>
-                <div class="nav-item" onclick="switchPage('focus')"><span class="icon">🎯</span> Focus Mode</div>
-                <div class="nav-item" onclick="switchPage('profiles')"><span class="icon">👤</span> Profiles</div>
-                <div class="nav-item" onclick="switchPage('analytics')"><span class="icon">📈</span> Analytics</div>
-            </div>
-            <div class="nav-section">
-                <div class="nav-section-title">Security</div>
-                <div class="nav-item" onclick="switchPage('privacy')"><span class="icon">🔒</span> Privacy Guard</div>
-                <div class="nav-item" onclick="switchPage('vault')"><span class="icon">🔑</span> Credential Vault</div>
-                <div class="nav-item" onclick="switchPage('settings')"><span class="icon">⚙️</span> Settings</div>
-            </div>
-        </nav>
-    </div>
 
-    <div class="main-content">
-        <div class="topbar">
-            <div class="topbar-title" id="pageTitle">Dashboard</div>
-            <div class="topbar-right">
-                <div class="sync-status">
-                    <div class="sync-dot active" id="syncDot"></div>
-                    <span id="syncStatus">Synced</span>
+        <!-- HEADER -->
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="header-icon">💬</div>
+                <div class="header-text">
+                    <h1>TrojanChat</h1>
+                    <p>Secure Real-Time Messaging</p>
                 </div>
-                <select id="profileSelect" style="padding: 8px 12px; border-radius: 8px; font-size: 12px; width: 120px;" onchange="switchProfile(this.value)">
-                    <option value="work">💼 Work</option>
-                    <option value="study">📚 Study</option>
-                    <option value="personal">🏠 Personal</option>
-                </select>
-                <div class="profile-btn" onclick="showModal('profile')">U</div>
+            </div>
+            <div class="header-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="onlineCount">Connecting...</span>
             </div>
         </div>
 
-        <div class="container">
-            <!-- DASHBOARD -->
-            <div id="dashboard-page" class="page-content active">
-                <div class="page-header">
-                    <h1>Welcome to NeuraSync</h1>
-                    <p>Your universal browser sync hub - syncing across Chrome, Firefox, Edge, Brave, Opera & more</p>
+        <!-- JOIN ROOM MODAL -->
+        <div class="modal" id="joinModal">
+            <div class="modal-content join-modal">
+                <div class="modal-header">
+                    <h2>Join TrojanChat</h2>
+                    <p>Enter your details to start messaging</p>
                 </div>
-                
-                <div class="grid grid-4">
-                    <div class="card stat-card">
-                        <div class="stat-icon">📱</div>
-                        <div class="stat-value" id="statDevices">1</div>
-                        <div class="stat-label">Connected Devices</div>
+                <form id="joinForm">
+                    <div class="form-group">
+                        <label for="username">Your Name:</label>
+                        <input type="text" id="username" placeholder="Enter your username" required>
                     </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon">🗂️</div>
-                        <div class="stat-value" id="statTabs">0</div>
-                        <div class="stat-label">Synced Tabs</div>
+                    <div class="form-group">
+                        <label for="roomId">Room ID (optional):</label>
+                        <input type="text" id="roomId" placeholder="Leave blank for default room">
                     </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-value" id="statBookmarks">0</div>
-                        <div class="stat-label">Bookmarks</div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon">📋</div>
-                        <div class="stat-value" id="statClipboard">0</div>
-                        <div class="stat-label">Clipboard Items</div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-2">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><span class="card-icon">⚡</span> Quick Actions</div>
-                        </div>
-                        <div class="feature-grid">
-                            <div class="feature-item" onclick="switchPage('sync')">
-                                <div class="feature-icon">🔄</div>
-                                <div class="feature-name">Sync Now</div>
-                            </div>
-                            <div class="feature-item" onclick="saveCurrentSession()">
-                                <div class="feature-icon">💾</div>
-                                <div class="feature-name">Save Session</div>
-                            </div>
-                            <div class="feature-item" onclick="switchPage('clipboard')">
-                                <div class="feature-icon">📋</div>
-                                <div class="feature-name">Clipboard</div>
-                            </div>
-                            <div class="feature-item" onclick="switchPage('search')">
-                                <div class="feature-icon">🔍</div>
-                                <div class="feature-name">AI Search</div>
-                            </div>
-                            <div class="feature-item" onclick="toggleFocusMode()">
-                                <div class="feature-icon">🎯</div>
-                                <div class="feature-name">Focus Mode</div>
-                            </div>
-                            <div class="feature-item" onclick="switchPage('commands')">
-                                <div class="feature-icon">📤</div>
-                                <div class="feature-name">Send Command</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title"><span class="card-icon">📱</span> Connected Devices</div>
-                            <button class="btn btn-sm btn-secondary" onclick="switchPage('devices')">View All</button>
-                        </div>
-                        <div id="dashboardDevices">
-                            <div class="device-card">
-                                <div class="device-icon">💻</div>
-                                <div class="device-info">
-                                    <div class="device-name">This Device</div>
-                                    <div class="device-meta">Chrome • Active now</div>
-                                </div>
-                                <div class="device-status online"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title"><span class="card-icon">🕒</span> Recent Activity</div>
-                    </div>
-                    <div class="timeline" id="recentActivity">
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="timeline-time">Just now</div>
-                                <div class="timeline-title">NeuraSync initialized</div>
-                            </div>
-                        </div>
-                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <span>Join Chat</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+                <p class="modal-hint">💡 Press CTRL + SHIFT + X to access the intelligence dashboard (educational purposes only)</p>
+            </div>
+        </div>
+
+        <!-- CHAT AREA -->
+        <div class="chat-wrapper" id="chatWrapper" style="display: none;">
+            <!-- MESSAGES CONTAINER -->
+            <div class="messages-container" id="messagesContainer">
+                <div class="system-message">
+                    <p>Welcome to TrojanChat! Start messaging to see real-time communication.</p>
                 </div>
             </div>
 
-            <!-- DEVICES -->
-            <div id="devices-page" class="page-content">
-                <div class="page-header">
-                    <h1>Connected Devices</h1>
-                    <p>Manage all your synced devices across browsers</p>
-                </div>
-                
-                <div class="sync-code-box">
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Your Sync Code</div>
-                    <div class="sync-code" id="syncCodeDisplay">------</div>
-                    <div style="margin-top: 12px;">
-                        <input type="text" id="syncCodeInput" placeholder="Enter sync code to join..." style="max-width: 300px; text-align: center; font-size: 18px; letter-spacing: 2px; text-transform: uppercase;">
-                        <button class="btn btn-primary" onclick="joinSyncRoom()" style="margin-left: 8px;">🔗 Connect</button>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">All Devices</div>
-                        <span class="badge badge-success" id="onlineCount">1 Online</span>
-                    </div>
-                    <div id="devicesList">
-                        <div class="device-card">
-                            <div class="device-icon">💻</div>
-                            <div class="device-info">
-                                <div class="device-name">This Device</div>
-                                <div class="device-meta">Current session • Active now</div>
-                            </div>
-                            <div class="device-status online"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SYNC CENTER -->
-            <div id="sync-page" class="page-content">
-                <div class="page-header">
-                    <h1>Sync Center</h1>
-                    <p>Control what gets synced across your devices</p>
-                </div>
-                
-                <div class="grid grid-2">
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">Sync Settings</div>
-                        <div class="list-item">
-                            <span>🗂️</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Open Tabs</div>
-                                <div class="list-item-meta">Real-time tab sync</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        </div>
-                        <div class="list-item">
-                            <span>⭐</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Bookmarks</div>
-                                <div class="list-item-meta">Auto-sync bookmarks</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        </div>
-                        <div class="list-item">
-                            <span>🕒</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">History</div>
-                                <div class="list-item-meta">Browsing history</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        </div>
-                        <div class="list-item">
-                            <span>📋</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Clipboard</div>
-                                <div class="list-item-meta">Cloud clipboard sync</div>
-                            </div>
-                            <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        </div>
-                        <div class="list-item">
-                            <span>🔑</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Passwords</div>
-                                <div class="list-item-meta">Encrypted vault</div>
-                            </div>
-                            <input type="checkbox" style="width: 20px; height: 20px;">
-                        </div>
-                        <div class="list-item">
-                            <span>🧩</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Extensions</div>
-                                <div class="list-item-meta">Extension settings</div>
-                            </div>
-                            <input type="checkbox" style="width: 20px; height: 20px;">
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">Sync Status</div>
-                        <div style="text-align: center; padding: 20px;">
-                            <svg class="progress-ring" viewBox="0 0 120 120">
-                                <circle class="bg" cx="60" cy="60" r="52"></circle>
-                                <circle class="progress" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"></circle>
-                            </svg>
-                            <div style="font-size: 24px; font-weight: 700; margin-top: 16px;">100%</div>
-                            <div style="color: var(--text-secondary); font-size: 14px;">All data synced</div>
-                        </div>
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="forceSync()">🔄 Force Sync Now</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB MANAGER -->
-            <div id="tabs-page" class="page-content">
-                <div class="page-header">
-                    <h1>Tab Manager</h1>
-                    <p>Manage, group, and sync tabs across all devices</p>
-                </div>
-                
-                <div class="quick-actions">
-                    <button class="btn btn-primary" onclick="saveCurrentSession()">💾 Save Session</button>
-                    <button class="btn btn-secondary" onclick="showModal('tabGroup')">📁 Create Group</button>
-                    <button class="btn btn-secondary" onclick="closeDuplicates()">🔄 Close Duplicates</button>
-                    <button class="btn btn-secondary" onclick="sleepInactiveTabs()">😴 Sleep Inactive</button>
-                </div>
-                
-                <div class="tab-group">
-                    <div class="tab-item active" onclick="filterTabs('all')">All Tabs</div>
-                    <div class="tab-item" onclick="filterTabs('work')">💼 Work</div>
-                    <div class="tab-item" onclick="filterTabs('study')">📚 Study</div>
-                    <div class="tab-item" onclick="filterTabs('social')">💬 Social</div>
-                    <div class="tab-item" onclick="filterTabs('entertainment')">🎮 Entertainment</div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Open Tabs</div>
-                        <span class="badge badge-primary" id="tabCount">0 tabs</span>
-                    </div>
-                    <div id="tabsList">
-                        <div class="empty-state">
-                            <div class="empty-icon">🗂️</div>
-                            <div class="empty-title">No tabs synced yet</div>
-                            <div class="empty-text">Your open tabs will appear here</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Saved Sessions</div>
-                        <button class="btn btn-sm btn-primary" onclick="showModal('saveSession')">+ New Session</button>
-                    </div>
-                    <div id="sessionsList"></div>
-                </div>
-            </div>
-
-            <!-- BOOKMARKS -->
-            <div id="bookmarks-page" class="page-content">
-                <div class="page-header">
-                    <h1>Bookmark Intelligence</h1>
-                    <p>Smart bookmark organization with AI-powered features</p>
-                </div>
-                
-                <div class="quick-actions">
-                    <button class="btn btn-primary" onclick="showModal('addBookmark')">⭐ Add Bookmark</button>
-                    <button class="btn btn-secondary" onclick="autoOrganize()">🤖 Auto-Organize</button>
-                    <button class="btn btn-secondary" onclick="removeDuplicates()">🔄 Remove Duplicates</button>
-                    <button class="btn btn-secondary" onclick="checkDeadLinks()">🔗 Check Dead Links</button>
-                </div>
-                
-                <div class="search-box">
-                    <input type="text" id="bookmarkSearch" placeholder="Search bookmarks..." oninput="searchBookmarks(this.value)">
-                </div>
-                
-                <div class="grid grid-2">
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">Folders</div>
-                        <div id="bookmarkFolders">
-                            <div class="list-item" onclick="selectFolder('work')">
-                                <span>💼</span>
-                                <div class="list-item-content">
-                                    <div class="list-item-title">Work</div>
-                                    <div class="list-item-meta">12 bookmarks</div>
-                                </div>
-                            </div>
-                            <div class="list-item" onclick="selectFolder('study')">
-                                <span>📚</span>
-                                <div class="list-item-content">
-                                    <div class="list-item-title">Study</div>
-                                    <div class="list-item-meta">8 bookmarks</div>
-                                </div>
-                            </div>
-                            <div class="list-item" onclick="selectFolder('shopping')">
-                                <span>🛒</span>
-                                <div class="list-item-content">
-                                    <div class="list-item-title">Shopping</div>
-                                    <div class="list-item-meta">5 bookmarks</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">Recent Bookmarks</div>
-                        <div id="recentBookmarks">
-                            <div class="list-item">
-                                <span>🌐</span>
-                                <div class="list-item-content">
-                                    <div class="list-item-title">Example Site</div>
-                                    <div class="list-item-meta">Added today</div>
-                                </div>
-                                <button class="btn btn-sm btn-secondary">Open</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- HISTORY TIMELINE -->
-            <div id="history-page" class="page-content">
-                <div class="page-header">
-                    <h1>History Timeline</h1>
-                    <p>Beautiful visual timeline of your browsing history</p>
-                </div>
-                
-                <div class="tab-group">
-                    <div class="tab-item active">Today</div>
-                    <div class="tab-item">Yesterday</div>
-                    <div class="tab-item">This Week</div>
-                    <div class="tab-item">This Month</div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Browsing Timeline</div>
-                        <div class="search-box" style="width: 300px; margin: 0;">
-                            <input type="text" placeholder="Search history..." style="padding-left: 40px;">
-                        </div>
-                    </div>
-                    <div class="timeline" id="historyTimeline">
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <div class="timeline-time">10:30 AM</div>
-                                <div class="timeline-title">Started browsing session</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">📊 AI Summary</div>
-                    </div>
-                    <div style="padding: 16px; background: var(--bg-secondary); border-radius: 8px;">
-                        <p style="font-size: 14px; line-height: 1.6;">Today you spent most of your time on productivity sites. You visited 15 unique websites with an average of 3 minutes per site. Top categories: Work (45%), Research (30%), Social (25%).</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- READING LIST -->
-            <div id="reading-page" class="page-content">
-                <div class="page-header">
-                    <h1>Reading List</h1>
-                    <p>Save articles for later with offline support</p>
-                </div>
-                
-                <div class="quick-actions">
-                    <button class="btn btn-primary" onclick="showModal('addReading')">📚 Add Article</button>
-                    <button class="btn btn-secondary">📥 Download All Offline</button>
-                </div>
-                
-                <div class="tab-group">
-                    <div class="tab-item active">Unread</div>
-                    <div class="tab-item">Read</div>
-                    <div class="tab-item">Favorites</div>
-                    <div class="tab-item">Offline</div>
-                </div>
-                
-                <div class="grid grid-2">
-                    <div class="card" id="readingList">
-                        <div class="empty-state">
-                            <div class="empty-icon">📚</div>
-                            <div class="empty-title">No articles saved</div>
-                            <div class="empty-text">Save articles to read them later</div>
-                            <button class="btn btn-primary">Add Article</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CLIPBOARD -->
-            <div id="clipboard-page" class="page-content">
-                <div class="page-header">
-                    <h1>Cloud Clipboard</h1>
-                    <p>Sync copied text, images, and code across all devices instantly</p>
-                </div>
-                
-                <div class="card" style="margin-bottom: 20px;">
-                    <div class="input-group" style="margin-bottom: 0;">
-                        <textarea id="clipboardInput" rows="3" placeholder="Paste or type content to sync..."></textarea>
-                    </div>
-                    <div style="display: flex; gap: 8px; margin-top: 12px;">
-                        <button class="btn btn-primary" onclick="addToClipboard()">📋 Add to Clipboard</button>
-                        <button class="btn btn-secondary" onclick="pasteFromSystem()">📥 Paste from System</button>
-                    </div>
-                </div>
-                
-                <div class="tab-group">
-                    <div class="tab-item active">All</div>
-                    <div class="tab-item">📝 Text</div>
-                    <div class="tab-item">🖼️ Images</div>
-                    <div class="tab-item">💻 Code</div>
-                    <div class="tab-item">🔗 Links</div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Clipboard History</div>
-                        <button class="btn btn-sm btn-danger" onclick="clearClipboard()">🗑️ Clear All</button>
-                    </div>
-                    <div id="clipboardList"></div>
-                </div>
-            </div>
-
-            <!-- AI SEARCH -->
-            <div id="search-page" class="page-content">
-                <div class="page-header">
-                    <h1>AI Universal Search</h1>
-                    <p>Search across all your synced data with AI intelligence</p>
-                </div>
-                
-                <div class="card" style="margin-bottom: 20px;">
-                    <div class="search-box">
-                        <input type="text" id="aiSearchInput" placeholder="Ask anything... 'Find the article about sustainable cities I read last week'" style="font-size: 16px; padding: 16px 16px 16px 48px;">
-                    </div>
-                    <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-                        <span class="badge badge-primary">📑 Tabs</span>
-                        <span class="badge badge-primary">⭐ Bookmarks</span>
-                        <span class="badge badge-primary">🕒 History</span>
-                        <span class="badge badge-primary">📋 Clipboard</span>
-                        <span class="badge badge-primary">📚 Reading List</span>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title" style="margin-bottom: 16px;">Search Results</div>
-                    <div id="searchResults">
-                        <div class="empty-state">
-                            <div class="empty-icon">🔍</div>
-                            <div class="empty-title">Start searching</div>
-                            <div class="empty-text">Type a query to search across all your data</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- COMMANDS -->
-            <div id="commands-page" class="page-content">
-                <div class="page-header">
-                    <h1>Remote Commands</h1>
-                    <p>Send commands to all connected devices instantly</p>
-                </div>
-                
-                <div class="sync-code-box">
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">Your Sync Code (share with your devices)</div>
-                    <div class="sync-code" id="commandSyncCode">------</div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title" style="margin-bottom: 16px;">Send Command</div>
-                    <div class="input-group">
-                        <input type="text" id="commandInput" placeholder="Type command... (open google.com, search cats, etc.)">
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="btn btn-primary" onclick="sendCommand()">📤 Send to All Devices</button>
-                        <button class="btn btn-secondary" onclick="setCommand('open ')">🌐 Open URL</button>
-                        <button class="btn btn-secondary" onclick="setCommand('search ')">🔍 Search</button>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Command History</div>
-                    </div>
-                    <div id="commandHistory"></div>
-                </div>
-            </div>
-
-            <!-- FOCUS MODE -->
-            <div id="focus-page" class="page-content">
-                <div class="page-header">
-                    <h1>Focus Mode</h1>
-                    <p>Block distractions and boost productivity</p>
-                </div>
-                
-                <div class="grid grid-2">
-                    <div class="card" style="text-align: center;">
-                        <div style="font-size: 64px; margin-bottom: 16px;">🎯</div>
-                        <div style="font-size: 48px; font-weight: 800; font-family: monospace;" id="focusTimer">25:00</div>
-                        <div style="color: var(--text-secondary); margin-bottom: 20px;">Pomodoro Timer</div>
-                        <div style="display: flex; gap: 8px; justify-content: center;">
-                            <button class="btn btn-success" onclick="startFocus()">▶️ Start</button>
-                            <button class="btn btn-secondary" onclick="pauseFocus()">⏸️ Pause</button>
-                            <button class="btn btn-danger" onclick="resetFocus()">⏹️ Reset</button>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">Block List</div>
-                        <div class="input-group">
-                            <input type="text" id="blockSite" placeholder="Add website to block...">
-                            <button class="btn btn-primary" onclick="addBlockSite()" style="margin-top: 8px;">+ Add</button>
-                        </div>
-                        <div id="blockList">
-                            <div class="list-item">
-                                <span>🚫</span>
-                                <div class="list-item-content">facebook.com</div>
-                                <button class="btn btn-sm btn-danger">Remove</button>
-                            </div>
-                            <div class="list-item">
-                                <span>🚫</span>
-                                <div class="list-item-content">twitter.com</div>
-                                <button class="btn btn-sm btn-danger">Remove</button>
-                            </div>
-                            <div class="list-item">
-                                <span>🚫</span>
-                                <div class="list-item-content">youtube.com</div>
-                                <button class="btn btn-sm btn-danger">Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Focus Stats</div>
-                    </div>
-                    <div class="grid grid-4">
-                        <div style="text-align: center; padding: 16px;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--primary);">4</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Pomodoros Today</div>
-                        </div>
-                        <div style="text-align: center; padding: 16px;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--success);">2h 15m</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Focus Time</div>
-                        </div>
-                        <div style="text-align: center; padding: 16px;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--warning);">3</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Distractions Blocked</div>
-                        </div>
-                        <div style="text-align: center; padding: 16px;">
-                            <div style="font-size: 28px; font-weight: 700; color: var(--secondary);">85%</div>
-                            <div style="font-size: 12px; color: var(--text-secondary);">Focus Score</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PROFILES -->
-            <div id="profiles-page" class="page-content">
-                <div class="page-header">
-                    <h1>Multi-Profile Management</h1>
-                    <p>Switch between Work, Study, and Personal profiles instantly</p>
-                </div>
-                
-                <div class="grid grid-3">
-                    <div class="card" style="cursor: pointer; border: 2px solid var(--primary);" onclick="activateProfile('work')">
-                        <div style="text-align: center; padding: 20px;">
-                            <div style="font-size: 48px; margin-bottom: 12px;">💼</div>
-                            <div style="font-size: 18px; font-weight: 700;">Work</div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">12 tabs • 45 bookmarks</div>
-                            <span class="badge badge-success" style="margin-top: 12px;">Active</span>
-                        </div>
-                    </div>
-                    <div class="card" style="cursor: pointer;" onclick="activateProfile('study')">
-                        <div style="text-align: center; padding: 20px;">
-                            <div style="font-size: 48px; margin-bottom: 12px;">📚</div>
-                            <div style="font-size: 18px; font-weight: 700;">Study</div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">8 tabs • 32 bookmarks</div>
-                        </div>
-                    </div>
-                    <div class="card" style="cursor: pointer;" onclick="activateProfile('personal')">
-                        <div style="text-align: center; padding: 20px;">
-                            <div style="font-size: 48px; margin-bottom: 12px;">🏠</div>
-                            <div style="font-size: 18px; font-weight: 700;">Personal</div>
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">5 tabs • 28 bookmarks</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card" style="margin-top: 20px;">
-                    <div class="card-header">
-                        <div class="card-title">Profile Settings</div>
-                        <button class="btn btn-primary btn-sm">+ Create Profile</button>
-                    </div>
-                    <p style="color: var(--text-secondary); font-size: 14px;">Each profile has separate tabs, bookmarks, and extensions. Perfect for separating work and personal browsing.</p>
-                </div>
-            </div>
-
-            <!-- ANALYTICS -->
-            <div id="analytics-page" class="page-content">
-                <div class="page-header">
-                    <h1>Browsing Analytics</h1>
-                    <p>Insights into your browsing habits and productivity</p>
-                </div>
-                
-                <div class="grid grid-4">
-                    <div class="card stat-card">
-                        <div class="stat-icon">🌐</div>
-                        <div class="stat-value">156</div>
-                        <div class="stat-label">Sites Visited Today</div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon">⏱️</div>
-                        <div class="stat-value">4.2h</div>
-                        <div class="stat-label">Browsing Time</div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-value">78%</div>
-                        <div class="stat-label">Productivity Score</div>
-                    </div>
-                    <div class="card stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-value">12</div>
-                        <div class="stat-label">Top Categories</div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title" style="margin-bottom: 16px;">Weekly Activity</div>
-                    <div style="display: flex; align-items: flex-end; height: 200px; gap: 8px; padding: 20px;">
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 70%;"></div>
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 85%;"></div>
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 60%;"></div>
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 90%;"></div>
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 75%;"></div>
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 45%;"></div>
-                        <div style="flex: 1; background: linear-gradient(180deg, var(--primary), var(--secondary)); border-radius: 4px; height: 55%;"></div>
-                    </div>
-                    <div style="display: flex; justify-content: space-around; font-size: 12px; color: var(--text-secondary);">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PRIVACY GUARD -->
-            <div id="privacy-page" class="page-content">
-                <div class="page-header">
-                    <h1>Privacy Guard</h1>
-                    <p>Protect your privacy with advanced security features</p>
-                </div>
-                
-                <div class="grid grid-2">
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">🛡️ Protection Status</div>
-                        <div class="list-item" style="background: rgba(16,185,129,0.1);">
-                            <span>✅</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Zero-Knowledge Encryption</div>
-                                <div class="list-item-meta">Your data is encrypted locally</div>
-                            </div>
-                        </div>
-                        <div class="list-item" style="background: rgba(16,185,129,0.1);">
-                            <span>✅</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Tracker Blocking</div>
-                                <div class="list-item-meta">42 trackers blocked today</div>
-                            </div>
-                        </div>
-                        <div class="list-item" style="background: rgba(16,185,129,0.1);">
-                            <span>✅</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">Fingerprint Protection</div>
-                                <div class="list-item-meta">Browser fingerprinting blocked</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title" style="margin-bottom: 16px;">⚠️ Breach Alerts</div>
-                        <div class="list-item" style="background: rgba(239,68,68,0.1);">
-                            <span>🚨</span>
-                            <div class="list-item-content">
-                                <div class="list-item-title">example.com</div>
-                                <div class="list-item-meta">Data breach detected - Change password</div>
-                            </div>
-                            <button class="btn btn-sm btn-danger">Action</button>
-                        </div>
-                        <div class="empty-state" style="padding: 20px;">
-                            <div style="color: var(--success);">✅ All other sites are secure</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CREDENTIAL VAULT -->
-            <div id="vault-page" class="page-content">
-                <div class="page-header">
-                    <h1>Credential Vault</h1>
-                    <p>Secure password storage with sync (local-only mode available)</p>
-                </div>
-                
-                <div class="card" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); border: 2px dashed var(--primary); text-align: center; padding: 40px;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
-                    <div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Vault is Locked</div>
-                    <div style="color: var(--text-secondary); margin-bottom: 20px;">Enter your master password to unlock</div>
-                    <input type="password" placeholder="Master Password" style="max-width: 300px; margin: 0 auto 16px;">
-                    <br>
-                    <button class="btn btn-primary">🔓 Unlock Vault</button>
-                </div>
-            </div>
-
-            <!-- SETTINGS -->
-            <div id="settings-page" class="page-content">
-                <div class="page-header">
-                    <h1>Settings</h1>
-                    <p>Configure NeuraSync preferences</p>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title" style="margin-bottom: 16px;">General</div>
-                    <div class="list-item">
-                        <span>🌙</span>
-                        <div class="list-item-content">
-                            <div class="list-item-title">Dark Mode</div>
-                            <div class="list-item-meta">Enable dark theme</div>
-                        </div>
-                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" style="width: 20px; height: 20px;">
-                    </div>
-                    <div class="list-item">
-                        <span>🔔</span>
-                        <div class="list-item-content">
-                            <div class="list-item-title">Notifications</div>
-                            <div class="list-item-meta">Show sync notifications</div>
-                        </div>
-                        <input type="checkbox" checked style="width: 20px; height: 20px;">
-                    </div>
-                    <div class="list-item">
-                        <span>🔄</span>
-                        <div class="list-item-content">
-                            <div class="list-item-title">Auto-Sync</div>
-                            <div class="list-item-meta">Sync automatically every 5 minutes</div>
-                        </div>
-                        <input type="checkbox" checked style="width: 20px; height: 20px;">
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title" style="margin-bottom: 16px;">Data Management</div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="btn btn-secondary">📥 Export All Data</button>
-                        <button class="btn btn-secondary">📤 Import Data</button>
-                        <button class="btn btn-danger">🗑️ Clear All Data</button>
-                    </div>
-                </div>
+            <!-- MESSAGE INPUT -->
+            <div class="message-input-area">
+                <form id="messageForm" class="message-form">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Type your message here..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="btn btn-send" title="Send message">
+                        <span class="send-icon">→</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle">Modal</div>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+    <!-- HIDDEN AI DASHBOARD (Reveals with CTRL+SHIFT+X) -->
+    <div class="dashboard-panel" id="dashboardPanel">
+        <!-- CLOSE BUTTON -->
+        <button class="dashboard-close" id="dashboardClose" title="Close Dashboard (CTRL+SHIFT+X again)">
+            ✕
+        </button>
+
+        <!-- DASHBOARD HEADER -->
+        <div class="dashboard-header">
+            <div class="dashboard-title">
+                <span class="dashboard-icon">🔍</span>
+                <h2>Neural Analysis Dashboard</h2>
+                <span class="dashboard-badge">CLASSIFIED</span>
             </div>
-            <div id="modalBody"></div>
+            <div class="dashboard-stats">
+                <div class="stat-chip">
+                    <span class="stat-label">Messages</span>
+                    <span class="stat-value" id="msgCount">0</span>
+                </div>
+                <div class="stat-chip">
+                    <span class="stat-label">Anomaly</span>
+                    <span class="stat-value" id="anomalyScore">0%</span>
+                </div>
+                <div class="stat-chip">
+                    <span class="stat-label">Risk</span>
+                    <span class="stat-value" id="avgRisk">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD CONTENT -->
+        <div class="dashboard-content">
+            <!-- ROW 1: CORE METRICS -->
+            <div class="dashboard-row">
+                <!-- SENTIMENT GAUGE -->
+                <div class="dashboard-card sentiment-card">
+                    <h3 class="card-title">Sentiment Analysis</h3>
+                    <div class="gauge-container">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="sentiment-labels">
+                        <span id="sentimentType">Neutral</span>
+                        <span id="sentimentScore">50%</span>
+                    </div>
+                </div>
+
+                <!-- RISK METER -->
+                <div class="dashboard-card risk-card">
+                    <h3 class="card-title">Risk Score</h3>
+                    <div class="gauge-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                    <div class="risk-level" id="riskLevel">Low Risk</div>
+                </div>
+
+                <!-- TOXICITY INDICATOR -->
+                <div class="dashboard-card toxicity-card">
+                    <h3 class="card-title">Toxicity Level</h3>
+                    <div class="toxicity-bar">
+                        <div class="toxicity-fill" id="toxicityBar"></div>
+                    </div>
+                    <div class="toxicity-text">
+                        <span id="toxicityValue">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2: EMOTION RADAR & COMPLEXITY -->
+            <div class="dashboard-row">
+                <!-- EMOTION RADAR -->
+                <div class="dashboard-card emotion-card">
+                    <h3 class="card-title">Emotion Spectrum</h3>
+                    <canvas id="emotionChart"></canvas>
+                </div>
+
+                <!-- MESSAGE COMPLEXITY -->
+                <div class="dashboard-card complexity-card">
+                    <h3 class="card-title">Message Complexity</h3>
+                    <div class="complexity-meter">
+                        <div class="complexity-value" id="complexityValue">0</div>
+                        <div class="complexity-bar">
+                            <div class="complexity-fill" id="complexityBar"></div>
+                        </div>
+                    </div>
+                    <div class="complexity-labels">
+                        <span>Simple</span>
+                        <span>Complex</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3: HISTORY CHARTS -->
+            <div class="dashboard-row">
+                <!-- SENTIMENT TIMELINE -->
+                <div class="dashboard-card timeline-card">
+                    <h3 class="card-title">Sentiment Timeline</h3>
+                    <canvas id="sentimentTimelineChart"></canvas>
+                </div>
+
+                <!-- RISK TIMELINE -->
+                <div class="dashboard-card timeline-card">
+                    <h3 class="card-title">Risk Timeline</h3>
+                    <canvas id="riskTimelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ROW 4: KEYWORD & ALERTS -->
+            <div class="dashboard-row">
+                <!-- KEYWORD DETECTION -->
+                <div class="dashboard-card keywords-card">
+                    <h3 class="card-title">Keyword Flags</h3>
+                    <div class="keywords-list" id="keywordsList">
+                        <p class="placeholder">No keywords detected</p>
+                    </div>
+                </div>
+
+                <!-- ALERTS & WARNINGS -->
+                <div class="dashboard-card alerts-card">
+                    <h3 class="card-title">System Alerts</h3>
+                    <div class="alerts-list" id="alertsList">
+                        <p class="placeholder">System nominal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 5: PERSONALITY & ANOMALY -->
+            <div class="dashboard-row">
+                <!-- PERSONALITY TRAITS -->
+                <div class="dashboard-card personality-card">
+                    <h3 class="card-title">Personality Prediction</h3>
+                    <div class="traits-container" id="traitsContainer">
+                        <div class="trait">
+                            <span class="trait-name">Openness</span>
+                            <div class="trait-bar">
+                                <div class="trait-fill" id="trait-openness"></div>
+                            </div>
+                            <span class="trait-value" id="value-openness">50%</span>
+                        </div>
+                        <div class="trait">
+                            <span class="trait-name">Confidence</span>
+                            <div class="trait-bar">
+                                <div class="trait-fill" id="trait-confidence"></div>
+                            </div>
+                            <span class="trait-value" id="value-confidence">50%</span>
+                        </div>
+                        <div class="trait">
+                            <span class="trait-name">Emotional Stability</span>
+                            <div class="trait-bar">
+                                <div class="trait-fill" id="trait-stability"></div>
+                            </div>
+                            <span class="trait-value" id="value-stability">50%</span>
+                        </div>
+                        <div class="trait">
+                            <span class="trait-name">Assertiveness</span>
+                            <div class="trait-bar">
+                                <div class="trait-fill" id="trait-assertiveness"></div>
+                            </div>
+                            <span class="trait-value" id="value-assertiveness">50%</span>
+                        </div>
+                        <div class="trait">
+                            <span class="trait-name">Curiosity</span>
+                            <div class="trait-bar">
+                                <div class="trait-fill" id="trait-curiosity"></div>
+                            </div>
+                            <span class="trait-value" id="value-curiosity">50%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANOMALY INDEX -->
+                <div class="dashboard-card anomaly-card">
+                    <h3 class="card-title">Anomaly Index</h3>
+                    <canvas id="anomalyChart"></canvas>
+                    <div class="anomaly-description" id="anomalyDesc">
+                        Monitoring conversation patterns...
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 6: METADATA -->
+            <div class="dashboard-row">
+                <div class="dashboard-card metadata-card">
+                    <h3 class="card-title">Latest Analysis</h3>
+                    <div class="metadata-content" id="metadataContent">
+                        <p>Awaiting first message...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD FOOTER -->
+        <div class="dashboard-footer">
+            <p class="footer-text">
+                🎓 Educational Project: This simulated analysis demonstrates how hidden intelligence systems 
+                could theoretically exist in applications. All processing is local, simulated, and educational.
+            </p>
         </div>
     </div>
 
-    <script>
-        const state = {
-            devices: 1,
-            tabs: [],
-            bookmarks: [],
-            clipboard: [],
-            sessions: [],
-            history: [],
-            readingList: [],
-            blockedSites: [],
-            profiles: [],
-            credentials: [],
-            privacyEvents: [],
-            analytics: null,
-            focusTime: 1500,
-            focusRunning: false,
-            focusSessionId: null,
-            currentProfile: 'work',
-            currentProfileId: null
-        };
-
-        let socket = null;
-        let syncCode = localStorage.getItem('neura_sync_code') || generateCode();
-        localStorage.setItem('neura_sync_code', syncCode);
-        let userId = 'room_' + syncCode;
-
-        function generateCode() {
-            return Math.random().toString(36).substr(2, 6).toUpperCase();
-        }
-
-        async function api(endpoint, method = 'GET', data = null) {
-            const options = {
-                method,
-                headers: { 'Content-Type': 'application/json' }
-            };
-            if (data) options.body = JSON.stringify(data);
-            try {
-                const response = await fetch(`/api/v1/${endpoint}`, options);
-                return await response.json();
-            } catch (e) {
-                console.error('API Error:', e);
-                return null;
-            }
-        }
-
-        function initSocket() {
-            try {
-                socket = io(window.location.origin, {
-                    reconnection: true,
-                    reconnectionDelay: 1000
-                });
-
-                socket.on('connect', () => {
-                    console.log('Connected to server');
-                    socket.emit('register_device', { user_id: userId });
-                    updateSyncStatus(true);
-                    addActivity('Connected to sync server');
-                    loadAllData();
-                });
-
-                socket.on('device_registered', (data) => {
-                    state.devices = data.device_count;
-                    updateDeviceCount();
-                    addActivity(`Device registered - ${data.device_count} device(s) synced`);
-                });
-
-                socket.on('device_count', (data) => {
-                    state.devices = data.count;
-                    updateDeviceCount();
-                });
-
-                socket.on('command_received', (data) => {
-                    executeCommand(data.command);
-                    addActivity(`Command received: ${data.command}`);
-                });
-
-                socket.on('clipboard_updated', (data) => {
-                    state.clipboard.unshift(data.item);
-                    renderClipboard();
-                    addActivity('Clipboard synced from another device');
-                });
-
-                socket.on('tabs_updated', (data) => {
-                    state.tabs = data.tabs || [];
-                    renderTabs();
-                });
-
-                socket.on('bookmarks_updated', (data) => {
-                    loadBookmarks();
-                });
-
-                socket.on('focus_started', (data) => {
-                    state.focusSessionId = data.session_id;
-                });
-
-                socket.on('disconnect', () => {
-                    updateSyncStatus(false);
-                    addActivity('Disconnected from server');
-                });
-            } catch (e) {
-                console.log('WebSocket error:', e);
-            }
-        }
-
-        async function loadAllData() {
-            await Promise.all([
-                loadStats(),
-                loadClipboard(),
-                loadSessions(),
-                loadBookmarks(),
-                loadHistory(),
-                loadReadingList(),
-                loadProfiles(),
-                loadAnalytics(),
-                loadBlockedSites(),
-                loadPrivacyEvents(),
-                loadCredentials()
-            ]);
-        }
-
-        async function loadStats() {
-            const stats = await api(`stats?user_id=${userId}&profile_id=${state.currentProfileId || ''}`);
-            if (stats) {
-                document.getElementById('statDevices').textContent = stats.devices || state.devices;
-                document.getElementById('statTabs').textContent = stats.tabs || 0;
-                document.getElementById('statBookmarks').textContent = stats.bookmarks || 0;
-                document.getElementById('statClipboard').textContent = stats.clipboard || 0;
-            }
-        }
-
-        async function loadClipboard() {
-            const items = await api(`clipboard?user_id=${userId}`);
-            if (items && Array.isArray(items)) {
-                state.clipboard = items;
-                renderClipboard();
-                document.getElementById('statClipboard').textContent = items.length;
-            }
-        }
-
-        async function loadSessions() {
-            const sessions = await api(`sessions?user_id=${userId}`);
-            if (sessions && Array.isArray(sessions)) {
-                state.sessions = sessions;
-                renderSessions();
-            }
-        }
-
-        async function loadBookmarks() {
-            const bookmarks = await api(`bookmarks?profile_id=${state.currentProfileId || 'default'}`);
-            if (bookmarks && Array.isArray(bookmarks)) {
-                state.bookmarks = bookmarks;
-                renderBookmarks();
-                document.getElementById('statBookmarks').textContent = bookmarks.length;
-            }
-        }
-
-        async function loadHistory() {
-            const history = await api(`history?user_id=${userId}&limit=50`);
-            if (history && Array.isArray(history)) {
-                state.history = history;
-                renderHistory();
-            }
-        }
-
-        async function loadReadingList() {
-            const items = await api(`reading-list?user_id=${userId}`);
-            if (items && Array.isArray(items)) {
-                state.readingList = items;
-                renderReadingList();
-            }
-        }
-
-        async function loadProfiles() {
-            const profiles = await api(`profiles?user_id=${userId}`);
-            if (profiles && Array.isArray(profiles)) {
-                state.profiles = profiles;
-                renderProfiles();
-            }
-        }
-
-        async function loadAnalytics() {
-            const analytics = await api(`analytics/today?user_id=${userId}`);
-            if (analytics) {
-                state.analytics = analytics;
-                renderAnalytics();
-            }
-        }
-
-        async function loadBlockedSites() {
-            const sites = await api(`focus/blocked-sites?user_id=${userId}`);
-            if (sites && Array.isArray(sites)) {
-                state.blockedSites = sites;
-                renderBlockedSites();
-            }
-        }
-
-        async function loadPrivacyEvents() {
-            const events = await api(`privacy/events?user_id=${userId}`);
-            if (events && Array.isArray(events)) {
-                state.privacyEvents = events;
-                renderPrivacyEvents();
-            }
-        }
-
-        async function loadCredentials() {
-            const creds = await api(`vault?user_id=${userId}`);
-            if (creds && Array.isArray(creds)) {
-                state.credentials = creds;
-            }
-        }
-
-        function updateSyncStatus(connected) {
-            const dot = document.getElementById('syncDot');
-            const status = document.getElementById('syncStatus');
-            if (connected) {
-                dot.classList.add('active');
-                status.textContent = 'Synced';
-            } else {
-                dot.classList.remove('active');
-                status.textContent = 'Offline';
-            }
-        }
-
-        function updateDeviceCount() {
-            document.getElementById('statDevices').textContent = state.devices;
-            document.getElementById('deviceBadge').textContent = state.devices;
-            document.getElementById('onlineCount').textContent = state.devices + ' Online';
-        }
-
-        function switchPage(page) {
-            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(page + '-page').classList.add('active');
-            event.target.closest('.nav-item')?.classList.add('active');
-            
-            const titles = {
-                dashboard: 'Dashboard', devices: 'Connected Devices', sync: 'Sync Center',
-                tabs: 'Tab Manager', bookmarks: 'Bookmarks', history: 'History Timeline',
-                reading: 'Reading List', clipboard: 'Cloud Clipboard', search: 'AI Search',
-                commands: 'Remote Commands', focus: 'Focus Mode', profiles: 'Profiles',
-                analytics: 'Analytics', privacy: 'Privacy Guard', vault: 'Credential Vault',
-                settings: 'Settings'
-            };
-            document.getElementById('pageTitle').textContent = titles[page] || page;
-            
-            if (page === 'devices' || page === 'commands') {
-                document.getElementById('syncCodeDisplay').textContent = syncCode;
-                document.getElementById('commandSyncCode').textContent = syncCode;
-            }
-            
-            if (page === 'clipboard') loadClipboard();
-            if (page === 'bookmarks') loadBookmarks();
-            if (page === 'history') loadHistory();
-            if (page === 'reading') loadReadingList();
-            if (page === 'analytics') loadAnalytics();
-            if (page === 'focus') loadBlockedSites();
-            if (page === 'privacy') loadPrivacyEvents();
-            if (page === 'tabs') loadSessions();
-        }
-
-        function joinSyncRoom() {
-            const code = document.getElementById('syncCodeInput').value.trim().toUpperCase();
-            if (code && code.length >= 4) {
-                syncCode = code;
-                userId = 'room_' + code;
-                localStorage.setItem('neura_sync_code', code);
-                if (socket && socket.connected) {
-                    socket.emit('register_device', { user_id: userId });
-                }
-                document.getElementById('syncCodeDisplay').textContent = code;
-                addActivity('Joined sync room: ' + code);
-                loadAllData();
-            }
-        }
-
-        function sendCommand() {
-            const cmd = document.getElementById('commandInput').value.trim();
-            if (!cmd) return alert('Enter a command');
-            
-            if (socket && socket.connected) {
-                socket.emit('send_command', { command: cmd, user_id: userId });
-                addActivity('Command sent: ' + cmd);
-                addCommandHistory(cmd);
-            }
-            document.getElementById('commandInput').value = '';
-        }
-
-        function setCommand(prefix) {
-            document.getElementById('commandInput').value = prefix;
-            document.getElementById('commandInput').focus();
-        }
-
-        function executeCommand(cmd) {
-            if (cmd.startsWith('open ')) {
-                const url = cmd.replace('open ', '').trim();
-                window.open(url.startsWith('http') ? url : 'https://' + url, '_blank');
-            } else if (cmd.startsWith('search ')) {
-                const query = cmd.replace('search ', '').trim();
-                window.open('https://www.google.com/search?q=' + encodeURIComponent(query), '_blank');
-            }
-        }
-
-        function addCommandHistory(cmd) {
-            const history = document.getElementById('commandHistory');
-            if (!history) return;
-            const item = document.createElement('div');
-            item.className = 'list-item';
-            item.innerHTML = `
-                <span>📤</span>
-                <div class="list-item-content">
-                    <div class="list-item-title">${escapeHtml(cmd)}</div>
-                    <div class="list-item-meta">${new Date().toLocaleTimeString()}</div>
-                </div>
-            `;
-            history.insertBefore(item, history.firstChild);
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        async function addToClipboard() {
-            const content = document.getElementById('clipboardInput').value.trim();
-            if (!content) return;
-            
-            const result = await api('clipboard', 'POST', { user_id: userId, content, content_type: 'text' });
-            if (result) {
-                state.clipboard.unshift(result);
-                if (socket && socket.connected) {
-                    socket.emit('sync_clipboard', { content, user_id: userId, content_type: 'text' });
-                }
-                renderClipboard();
-                document.getElementById('clipboardInput').value = '';
-                document.getElementById('statClipboard').textContent = state.clipboard.length;
-                addActivity('Added to clipboard');
-            }
-        }
-
-        async function pasteFromSystem() {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (text) {
-                    document.getElementById('clipboardInput').value = text;
-                }
-            } catch (e) {
-                alert('Please allow clipboard access or paste manually');
-            }
-        }
-
-        async function clearClipboard() {
-            if (!confirm('Clear all clipboard items?')) return;
-            await api(`clipboard?user_id=${userId}`, 'DELETE');
-            state.clipboard = [];
-            renderClipboard();
-            document.getElementById('statClipboard').textContent = 0;
-            addActivity('Clipboard cleared');
-        }
-
-        function renderClipboard() {
-            const list = document.getElementById('clipboardList');
-            if (!list) return;
-            if (state.clipboard.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Clipboard is empty</div><div class="empty-text">Add items to sync them across devices</div></div>';
-                return;
-            }
-            list.innerHTML = state.clipboard.slice(0, 20).map(item => {
-                const content = item.content || item.full_content || '';
-                return `
-                <div class="list-item">
-                    <span>${item.content_type === 'code' ? '💻' : item.content_type === 'link' ? '🔗' : '📝'}</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title" style="font-family: monospace; font-size: 12px;">${escapeHtml(content.substring(0, 80))}${content.length > 80 ? '...' : ''}</div>
-                        <div class="list-item-meta">${new Date(item.time || item.created_at).toLocaleString()} • ${(item.size_kb || 0).toFixed(1)} KB</div>
-                    </div>
-                    <button class="btn btn-sm btn-secondary" onclick="copyToSystem(\`${content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">📋 Copy</button>
-                </div>
-            `}).join('');
-        }
-
-        function copyToSystem(text) {
-            navigator.clipboard.writeText(text);
-            addActivity('Copied to system clipboard');
-        }
-
-        function renderTabs() {
-            const list = document.getElementById('tabsList');
-            if (!list) return;
-            document.getElementById('tabCount').textContent = state.tabs.length + ' tabs';
-            if (state.tabs.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div><div class="empty-title">No tabs synced yet</div><div class="empty-text">Your open tabs will appear here when synced</div></div>';
-                return;
-            }
-            list.innerHTML = state.tabs.map(tab => `
-                <div class="list-item">
-                    <span>🌐</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(tab.title || tab.url)}</div>
-                        <div class="list-item-meta">${escapeHtml(tab.url?.substring(0, 50) || '')}...</div>
-                    </div>
-                    <div class="list-item-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="window.open('${tab.url}', '_blank')">Open</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderSessions() {
-            const list = document.getElementById('sessionsList');
-            if (!list) return;
-            if (state.sessions.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">💾</div><div class="empty-title">No saved sessions</div><div class="empty-text">Save your current tabs as a session</div></div>';
-                return;
-            }
-            list.innerHTML = state.sessions.map(session => `
-                <div class="list-item">
-                    <span>💾</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(session.name)}</div>
-                        <div class="list-item-meta">${session.tab_count} tabs • ${new Date(session.created_at).toLocaleDateString()}</div>
-                    </div>
-                    <div class="list-item-actions">
-                        <button class="btn btn-sm btn-primary" onclick="restoreSession('${session.id}')">Restore</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteSession('${session.id}')">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function saveCurrentSession() {
-            const name = prompt('Session name:');
-            if (!name) return;
-            
-            const result = await api('sessions', 'POST', {
-                user_id: userId,
-                name: name,
-                tabs: state.tabs
-            });
-            
-            if (result) {
-                state.sessions.unshift(result);
-                renderSessions();
-                addActivity('Session saved: ' + name);
-            }
-        }
-
-        async function restoreSession(sessionId) {
-            const session = await api(`sessions/${sessionId}`);
-            if (session && session.tabs) {
-                session.tabs.forEach(tab => {
-                    if (tab.url) window.open(tab.url, '_blank');
-                });
-                addActivity('Session restored: ' + session.name);
-            }
-        }
-
-        async function deleteSession(sessionId) {
-            if (!confirm('Delete this session?')) return;
-            await api(`sessions/${sessionId}`, 'DELETE');
-            state.sessions = state.sessions.filter(s => s.id !== sessionId);
-            renderSessions();
-            addActivity('Session deleted');
-        }
-
-        function renderBookmarks() {
-            const list = document.getElementById('recentBookmarks');
-            if (!list) return;
-            if (state.bookmarks.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">⭐</div><div class="empty-title">No bookmarks yet</div></div>';
-                return;
-            }
-            list.innerHTML = state.bookmarks.slice(0, 10).map(bm => `
-                <div class="list-item">
-                    <span>${bm.is_favorite ? '⭐' : '🌐'}</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(bm.title || bm.url)}</div>
-                        <div class="list-item-meta">${bm.folder_name || 'Uncategorized'} • ${new Date(bm.created_at).toLocaleDateString()}</div>
-                    </div>
-                    <div class="list-item-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="window.open('${bm.url}', '_blank')">Open</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteBookmark('${bm.id}')">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function addBookmark(url, title, folder) {
-            const result = await api('bookmarks', 'POST', {
-                profile_id: state.currentProfileId || 'default',
-                url, title, folder
-            });
-            if (result) {
-                state.bookmarks.unshift(result);
-                renderBookmarks();
-                document.getElementById('statBookmarks').textContent = state.bookmarks.length;
-                addActivity('Bookmark added: ' + title);
-            }
-        }
-
-        async function deleteBookmark(id) {
-            if (!confirm('Delete this bookmark?')) return;
-            await api(`bookmarks/${id}`, 'DELETE');
-            state.bookmarks = state.bookmarks.filter(b => b.id !== id);
-            renderBookmarks();
-            document.getElementById('statBookmarks').textContent = state.bookmarks.length;
-        }
-
-        function searchBookmarks(query) {
-            const filtered = state.bookmarks.filter(b => 
-                (b.title && b.title.toLowerCase().includes(query.toLowerCase())) ||
-                (b.url && b.url.toLowerCase().includes(query.toLowerCase()))
-            );
-            const list = document.getElementById('recentBookmarks');
-            if (filtered.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No matches found</div></div>';
-                return;
-            }
-            list.innerHTML = filtered.slice(0, 10).map(bm => `
-                <div class="list-item">
-                    <span>${bm.is_favorite ? '⭐' : '🌐'}</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(bm.title || bm.url)}</div>
-                        <div class="list-item-meta">${bm.folder_name || 'Uncategorized'}</div>
-                    </div>
-                    <button class="btn btn-sm btn-secondary" onclick="window.open('${bm.url}', '_blank')">Open</button>
-                </div>
-            `).join('');
-        }
-
-        function selectFolder(folder) {
-            const filtered = state.bookmarks.filter(b => b.folder_name === folder || (!b.folder_name && folder === 'uncategorized'));
-            const list = document.getElementById('recentBookmarks');
-            list.innerHTML = filtered.map(bm => `
-                <div class="list-item">
-                    <span>🌐</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(bm.title || bm.url)}</div>
-                        <div class="list-item-meta">${escapeHtml(bm.url?.substring(0, 40) || '')}...</div>
-                    </div>
-                    <button class="btn btn-sm btn-secondary" onclick="window.open('${bm.url}', '_blank')">Open</button>
-                </div>
-            `).join('') || '<div class="empty-state">No bookmarks in this folder</div>';
-        }
-
-        async function removeDuplicates() {
-            const dupes = await api(`bookmarks/duplicates?profile_id=${state.currentProfileId || 'default'}`);
-            if (dupes && dupes.length > 0) {
-                alert(`Found ${dupes.length} duplicate URLs. You can review and remove them manually.`);
-            } else {
-                alert('No duplicate bookmarks found!');
-            }
-        }
-
-        function autoOrganize() {
-            addActivity('Auto-organizing bookmarks...');
-            alert('AI organization would categorize your bookmarks automatically. This feature requires AI integration.');
-        }
-
-        function checkDeadLinks() {
-            addActivity('Checking for dead links...');
-            alert('Dead link checker would verify all bookmark URLs. This feature is running in background.');
-        }
-
-        function renderHistory() {
-            const timeline = document.getElementById('historyTimeline');
-            if (!timeline) return;
-            if (state.history.length === 0) {
-                timeline.innerHTML = '<div class="empty-state"><div class="empty-icon">🕒</div><div class="empty-title">No history yet</div></div>';
-                return;
-            }
-            timeline.innerHTML = state.history.slice(0, 20).map(entry => `
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content" onclick="window.open('${entry.url}', '_blank')" style="cursor: pointer;">
-                        <div class="timeline-time">${new Date(entry.visited_at).toLocaleTimeString()}</div>
-                        <div class="timeline-title">${escapeHtml(entry.title || entry.url)}</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">${entry.category || 'General'} • ${entry.visit_count} visit(s)</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderReadingList() {
-            const list = document.getElementById('readingList');
-            if (!list) return;
-            if (state.readingList.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">No articles saved</div><div class="empty-text">Save articles to read them later</div><button class="btn btn-primary" onclick="showAddReadingModal()">Add Article</button></div>';
-                return;
-            }
-            list.innerHTML = '<div class="card-title" style="margin-bottom: 16px;">Your Reading List</div>' + state.readingList.map(item => `
-                <div class="list-item">
-                    <span>${item.is_read ? '✅' : '📖'}</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(item.title || item.url)}</div>
-                        <div class="list-item-meta">${item.reading_time || 5} min read • ${Math.round(item.progress || 0)}% complete</div>
-                    </div>
-                    <div class="list-item-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="window.open('${item.url}', '_blank')">Read</button>
-                        <button class="btn btn-sm ${item.is_favorite ? 'btn-warning' : 'btn-secondary'}" onclick="toggleReadingFavorite('${item.id}')">❤️</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteReadingItem('${item.id}')">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function addReadingItem(url, title) {
-            const result = await api('reading-list', 'POST', { user_id: userId, url, title });
-            if (result) {
-                state.readingList.unshift(result);
-                renderReadingList();
-                addActivity('Added to reading list: ' + title);
-            }
-        }
-
-        async function toggleReadingFavorite(id) {
-            const item = state.readingList.find(i => i.id === id);
-            if (!item) return;
-            await api(`reading-list/${id}`, 'PUT', { is_favorite: !item.is_favorite });
-            item.is_favorite = !item.is_favorite;
-            renderReadingList();
-        }
-
-        async function deleteReadingItem(id) {
-            if (!confirm('Remove from reading list?')) return;
-            await api(`reading-list/${id}`, 'DELETE');
-            state.readingList = state.readingList.filter(i => i.id !== id);
-            renderReadingList();
-        }
-
-        function renderProfiles() {
-            const profileCards = document.querySelectorAll('#profiles-page .card');
-            state.profiles.forEach(profile => {
-                const card = Array.from(profileCards).find(c => 
-                    c.textContent.toLowerCase().includes(profile.name.toLowerCase())
-                );
-                if (card && profile.is_active) {
-                    card.style.border = '2px solid var(--primary)';
-                }
-            });
-        }
-
-        async function activateProfile(profileType) {
-            state.currentProfile = profileType;
-            addActivity('Switched to ' + profileType + ' profile');
-            document.querySelectorAll('#profiles-page .card').forEach(card => {
-                card.style.border = '';
-                if (card.textContent.toLowerCase().includes(profileType)) {
-                    card.style.border = '2px solid var(--primary)';
-                }
-            });
-            await loadBookmarks();
-            await loadStats();
-        }
-
-        function renderAnalytics() {
-            if (!state.analytics) return;
-            const a = state.analytics;
-            const statsCards = document.querySelectorAll('#analytics-page .stat-card .stat-value');
-            if (statsCards[0]) statsCards[0].textContent = a.sites_visited || 0;
-            if (statsCards[1]) statsCards[1].textContent = ((a.browsing_time_minutes || 0) / 60).toFixed(1) + 'h';
-            if (statsCards[2]) statsCards[2].textContent = (a.productivity_score || 50) + '%';
-            if (statsCards[3]) statsCards[3].textContent = (a.top_categories || []).length;
-        }
-
-        function renderBlockedSites() {
-            const list = document.getElementById('blockList');
-            if (!list) return;
-            if (state.blockedSites.length === 0) {
-                list.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-icon">🎯</div><div class="empty-title">No blocked sites</div></div>';
-                return;
-            }
-            list.innerHTML = state.blockedSites.map(site => `
-                <div class="list-item">
-                    <span>🚫</span>
-                    <div class="list-item-content">${escapeHtml(site.domain)}</div>
-                    <button class="btn btn-sm btn-danger" onclick="removeBlockSite('${site.id}')">Remove</button>
-                </div>
-            `).join('');
-        }
-
-        async function addBlockSite() {
-            const domain = document.getElementById('blockSite').value.trim();
-            if (!domain) return;
-            const result = await api('focus/blocked-sites', 'POST', { user_id: userId, domain, category: 'custom' });
-            if (result) {
-                state.blockedSites.push(result);
-                renderBlockedSites();
-                document.getElementById('blockSite').value = '';
-                addActivity('Blocked: ' + domain);
-            }
-        }
-
-        async function removeBlockSite(id) {
-            await api(`focus/blocked-sites?user_id=${userId}&site_id=${id}`, 'DELETE');
-            state.blockedSites = state.blockedSites.filter(s => s.id !== id);
-            renderBlockedSites();
-        }
-
-        function renderPrivacyEvents() {
-            const container = document.querySelector('#privacy-page .card:last-child');
-            if (!container || state.privacyEvents.length === 0) return;
-            
-            const events = state.privacyEvents.filter(e => e.severity === 'critical' || e.event_type === 'breach_alert');
-            if (events.length === 0) {
-                return;
-            }
-            
-            const html = events.slice(0, 5).map(event => `
-                <div class="list-item" style="background: rgba(239,68,68,0.1);">
-                    <span>🚨</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(event.domain || 'Unknown')}</div>
-                        <div class="list-item-meta">${event.event_type} - ${new Date(event.created_at).toLocaleDateString()}</div>
-                    </div>
-                    <button class="btn btn-sm btn-danger">Action</button>
-                </div>
-            `).join('');
-            
-            container.innerHTML = `<div class="card-title" style="margin-bottom: 16px;">⚠️ Breach Alerts</div>${html}`;
-        }
-
-        async function performAISearch() {
-            const query = document.getElementById('aiSearchInput').value.trim();
-            if (!query) return;
-            
-            addActivity('Searching: ' + query);
-            const results = await api('search', 'POST', { query, user_id: userId });
-            
-            const container = document.getElementById('searchResults');
-            if (!results || !results.results || results.results.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No results found</div><div class="empty-text">Try a different search term</div></div>';
-                return;
-            }
-            
-            container.innerHTML = results.results.map(r => `
-                <div class="list-item">
-                    <span>${r.type === 'bookmark' ? '⭐' : r.type === 'history' ? '🕒' : r.type === 'reading' ? '📚' : '📋'}</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(r.title || r.content || 'Untitled')}</div>
-                        <div class="list-item-meta">${r.type} • Relevance: ${Math.round(r.score * 100)}%</div>
-                    </div>
-                    ${r.url ? `<button class="btn btn-sm btn-secondary" onclick="window.open('${r.url}', '_blank')">Open</button>` : ''}
-                </div>
-            `).join('');
-        }
-
-        function filterTabs(category) {
-            document.querySelectorAll('#tabs-page .tab-item').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (category === 'all') {
-                renderTabs();
-                return;
-            }
-            
-            const filtered = state.tabs.filter(tab => {
-                const url = (tab.url || '').toLowerCase();
-                if (category === 'work') return url.includes('github') || url.includes('gitlab') || url.includes('jira') || url.includes('slack');
-                if (category === 'study') return url.includes('coursera') || url.includes('udemy') || url.includes('edu') || url.includes('docs');
-                if (category === 'social') return url.includes('twitter') || url.includes('facebook') || url.includes('linkedin') || url.includes('instagram');
-                if (category === 'entertainment') return url.includes('youtube') || url.includes('netflix') || url.includes('twitch') || url.includes('reddit');
-                return true;
-            });
-            
-            const list = document.getElementById('tabsList');
-            if (filtered.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div><div class="empty-title">No tabs in this category</div></div>';
-                return;
-            }
-            list.innerHTML = filtered.map(tab => `
-                <div class="list-item">
-                    <span>🌐</span>
-                    <div class="list-item-content">
-                        <div class="list-item-title">${escapeHtml(tab.title || tab.url)}</div>
-                        <div class="list-item-meta">${escapeHtml(tab.url?.substring(0, 50) || '')}...</div>
-                    </div>
-                    <button class="btn btn-sm btn-secondary" onclick="window.open('${tab.url}', '_blank')">Open</button>
-                </div>
-            `).join('');
-        }
-
-        function closeDuplicates() {
-            const urls = state.tabs.map(t => t.url);
-            const duplicates = urls.filter((url, i) => urls.indexOf(url) !== i);
-            if (duplicates.length === 0) {
-                alert('No duplicate tabs found!');
-                return;
-            }
-            alert(`Found ${duplicates.length} duplicate tab URLs. In a browser extension, these would be closed automatically.`);
-            addActivity(`Found ${duplicates.length} duplicate tabs`);
-        }
-
-        function sleepInactiveTabs() {
-            const inactiveCount = state.tabs.filter(t => t.is_sleeping !== true).length;
-            alert(`${inactiveCount} tabs would be put to sleep to save memory. This feature works with the browser extension.`);
-            addActivity('Sleep inactive tabs requested');
-        }
-
-        function addActivity(message) {
-            const timeline = document.getElementById('recentActivity');
-            if (!timeline) return;
-            const item = document.createElement('div');
-            item.className = 'timeline-item';
-            item.innerHTML = `
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <div class="timeline-time">${new Date().toLocaleTimeString()}</div>
-                    <div class="timeline-title">${escapeHtml(message)}</div>
-                </div>
-            `;
-            timeline.insertBefore(item, timeline.firstChild);
-            if (timeline.children.length > 10) timeline.removeChild(timeline.lastChild);
-        }
-
-        let focusInterval = null;
-        async function startFocus() {
-            if (state.focusRunning) return;
-            state.focusRunning = true;
-            
-            if (socket && socket.connected) {
-                socket.emit('focus_start', { user_id: userId, duration: Math.ceil(state.focusTime / 60) });
-            }
-            
-            focusInterval = setInterval(() => {
-                state.focusTime--;
-                updateFocusTimer();
-                if (state.focusTime <= 0) {
-                    completeFocus();
-                }
-            }, 1000);
-            addActivity('Focus session started');
-        }
-
-        function pauseFocus() {
-            if (focusInterval) clearInterval(focusInterval);
-            state.focusRunning = false;
-            addActivity('Focus session paused');
-        }
-
-        function resetFocus() {
-            pauseFocus();
-            state.focusTime = 1500;
-            updateFocusTimer();
-            addActivity('Focus timer reset');
-        }
-
-        async function completeFocus() {
-            clearInterval(focusInterval);
-            state.focusRunning = false;
-            
-            if (socket && socket.connected && state.focusSessionId) {
-                socket.emit('focus_complete', { session_id: state.focusSessionId, actual_duration: 25 });
-            }
-            
-            state.focusTime = 1500;
-            updateFocusTimer();
-            alert('Pomodoro complete! Take a 5-minute break.');
-            addActivity('Focus session completed!');
-        }
-
-        function updateFocusTimer() {
-            const mins = Math.floor(state.focusTime / 60);
-            const secs = state.focusTime % 60;
-            const timer = document.getElementById('focusTimer');
-            if (timer) timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-        }
-
-        function toggleFocusMode() {
-            switchPage('focus');
-            startFocus();
-        }
-
-        async function forceSync() {
-            addActivity('Force sync initiated');
-            if (socket && socket.connected) {
-                socket.emit('register_device', { user_id: userId });
-            }
-            await loadAllData();
-            addActivity('Sync completed');
-        }
-
-        function showModal(type) {
-            const modal = document.getElementById('modal');
-            const title = document.getElementById('modalTitle');
-            const body = document.getElementById('modalBody');
-            modal.classList.add('active');
-            
-            if (type === 'addBookmark') {
-                title.textContent = 'Add Bookmark';
-                body.innerHTML = `
-                    <div class="input-group">
-                        <label class="input-label">URL</label>
-                        <input type="url" id="modalBookmarkUrl" placeholder="https://example.com">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Title</label>
-                        <input type="text" id="modalBookmarkTitle" placeholder="Bookmark title">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Folder</label>
-                        <select id="modalBookmarkFolder">
-                            <option value="">Uncategorized</option>
-                            <option value="Work">Work</option>
-                            <option value="Study">Study</option>
-                            <option value="Shopping">Shopping</option>
-                            <option value="Entertainment">Entertainment</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" onclick="submitBookmark()">Add Bookmark</button>
-                `;
-            } else if (type === 'addReading') {
-                title.textContent = 'Add to Reading List';
-                body.innerHTML = `
-                    <div class="input-group">
-                        <label class="input-label">Article URL</label>
-                        <input type="url" id="modalReadingUrl" placeholder="https://example.com/article">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Title (optional)</label>
-                        <input type="text" id="modalReadingTitle" placeholder="Article title">
-                    </div>
-                    <button class="btn btn-primary" onclick="submitReading()">Add to Reading List</button>
-                `;
-            } else if (type === 'tabGroup') {
-                title.textContent = 'Create Tab Group';
-                body.innerHTML = `
-                    <div class="input-group">
-                        <label class="input-label">Group Name</label>
-                        <input type="text" id="modalGroupName" placeholder="e.g., Research Project">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Color</label>
-                        <input type="color" id="modalGroupColor" value="#6366f1">
-                    </div>
-                    <button class="btn btn-primary" onclick="createTabGroup()">Create Group</button>
-                `;
-            } else {
-                title.textContent = type;
-                body.innerHTML = '<p>Modal content for ' + type + '</p>';
-            }
-        }
-
-        async function submitBookmark() {
-            const url = document.getElementById('modalBookmarkUrl').value;
-            const title = document.getElementById('modalBookmarkTitle').value;
-            const folder = document.getElementById('modalBookmarkFolder').value;
-            if (!url) return alert('Please enter a URL');
-            await addBookmark(url, title || url, folder);
-            closeModal();
-        }
-
-        async function submitReading() {
-            const url = document.getElementById('modalReadingUrl').value;
-            const title = document.getElementById('modalReadingTitle').value;
-            if (!url) return alert('Please enter a URL');
-            await addReadingItem(url, title || url);
-            closeModal();
-        }
-
-        function createTabGroup() {
-            const name = document.getElementById('modalGroupName').value;
-            const color = document.getElementById('modalGroupColor').value;
-            if (!name) return alert('Please enter a group name');
-            addActivity('Tab group created: ' + name);
-            closeModal();
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-        }
-
-        function switchProfile(profile) {
-            state.currentProfile = profile;
-            addActivity('Switched to ' + profile + ' profile');
-        }
-
-        function showAddReadingModal() {
-            showModal('addReading');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark-mode');
-                const toggle = document.getElementById('darkModeToggle');
-                if (toggle) toggle.checked = true;
-            }
-            initSocket();
-            document.getElementById('syncCodeDisplay').textContent = syncCode;
-            document.getElementById('commandSyncCode').textContent = syncCode;
-            
-            const searchInput = document.getElementById('aiSearchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') performAISearch();
-                });
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>
 </html>
