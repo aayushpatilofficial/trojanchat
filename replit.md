@@ -1,149 +1,96 @@
-# NeuraSync v4.0 - Universal Browser Sync Platform
+# TrojanChat - Educational Cyber Awareness Application
 
 ## Overview
-NeuraSync is a comprehensive browser synchronization platform that enables real-time sync across Chrome, Firefox, Edge, Brave, Opera and other browsers. It provides 75+ features for managing tabs, bookmarks, history, clipboard, and more across multiple devices.
+TrojanChat is an educational cyber awareness application designed to teach users about hidden intelligence systems and digital surveillance. It appears as a simple chat application but contains a hidden AI analysis dashboard (revealed with CTRL+SHIFT+X) that demonstrates how AI systems could theoretically monitor and analyze user communications.
+
+## Purpose
+This is an **educational tool only** - designed to raise awareness about:
+- How hidden data collection can work in seemingly innocent apps
+- AI-powered message analysis capabilities
+- The importance of understanding what happens behind the scenes in software
 
 ## Key Features
 
-### Core Sync Features
-- Real-time multi-device sync via WebSocket (Socket.IO)
-- Room-based architecture using sync codes
-- Cross-browser support (Chrome, Firefox, Edge, Brave, Opera, Arc)
+### Chat Interface
+- Real-time chat with Socket.IO
+- Room-based messaging system
+- Clean, modern UI with glassmorphism effects
+- Dark/light mode toggle
 
-### Browser Data Management
-- **Tab Manager**: Tab groups, frozen tabs, session save/restore, duplicate cleaner
-- **Bookmarks**: Smart folders, AI categorization, duplicate finder, dead link checker
-- **History Timeline**: Visual timeline, category stats, AI summaries
-- **Reading List**: Save articles, offline mode, highlights and notes
+### Hidden Intelligence Dashboard (CTRL+SHIFT+X)
+- **Message Interception**: Shows all messages sent in the room
+- **AI Analysis**: Real-time sentiment, emotion, and intent detection
+- **AI Thoughts**: Simulated surveillance perspective on messages
+- **Conversation Summary**: AI-generated rolling summaries
 
-### Productivity Features
-- **Focus Mode**: Pomodoro timer, site blocking, distraction tracking
-- **Multi-Profiles**: Work/Study/Personal profiles with separate data
-- **Analytics**: Browsing stats, productivity scores, weekly reports
-
-### Security & Privacy
-- **Privacy Guard**: Tracker blocking, breach alerts, fingerprint protection
-- **Credential Vault**: Encrypted password storage with master key
+### Awareness Page
+- Educational content about Trojan programs
+- How to protect yourself
+- Signs of suspicious software
 
 ## Tech Stack
-- **Backend**: Flask + Flask-SocketIO + SQLAlchemy
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Frontend**: Vanilla JavaScript SPA
-- **Real-time**: Socket.IO for WebSocket communication
+- **Backend**: Flask + Flask-SocketIO
+- **AI**: OpenAI GPT-4o-mini for message analysis
+- **Frontend**: Vanilla JavaScript with Socket.IO client
+- **Styling**: Modern CSS with glassmorphism, gradients, animations
 
-## API Endpoints
+## File Structure
+```
+/
+├── main.py                 # Flask server with AI integration
+├── templates/
+│   ├── index.html          # Main chat interface + dashboard
+│   └── awareness.html      # Educational awareness page
+└── static/
+    ├── style.css           # All styling
+    └── chat.js             # Frontend JavaScript
+```
 
-### Core
-- `GET /` - Main application
-- `GET /health` - Health check
-- `GET /api/v1/stats` - Stats summary
-
-### Profiles
-- `GET/POST /api/v1/profiles` - List/Create profiles
-- `PUT/DELETE /api/v1/profiles/<id>` - Update/Delete profile
-
-### Devices
-- `GET/POST /api/v1/devices` - List/Register devices
-
-### Tabs
-- `GET/POST /api/v1/tabs` - List/Create tabs
-- `POST /api/v1/tabs/bulk` - Bulk sync tabs
-- `GET/POST /api/v1/tab-groups` - Tab groups
-
-### Bookmarks
-- `GET/POST /api/v1/bookmarks` - List/Create bookmarks
-- `PUT/DELETE /api/v1/bookmarks/<id>` - Update/Delete bookmark
-- `GET /api/v1/bookmarks/duplicates` - Find duplicates
-- `GET/POST /api/v1/bookmark-folders` - Bookmark folders
-
-### History
-- `GET/POST /api/v1/history` - List/Add history
-- `GET /api/v1/history/timeline` - Timeline view
-
-### Reading List
-- `GET/POST /api/v1/reading-list` - List/Add articles
-- `PUT/DELETE /api/v1/reading-list/<id>` - Update/Delete article
-
-### Clipboard
-- `GET/POST/DELETE /api/v1/clipboard` - Clipboard operations
-
-### Focus Mode
-- `GET/POST/DELETE /api/v1/focus/blocked-sites` - Blocked sites
-
-### Credential Vault
-- `GET/POST /api/v1/vault` - List/Add credentials
-- `GET/PUT/DELETE /api/v1/vault/<id>` - Credential operations
-
-### Privacy
-- `GET/POST /api/v1/privacy/events` - Privacy events
-
-### Analytics
-- `GET /api/v1/analytics` - Weekly analytics
-- `GET/POST /api/v1/analytics/today` - Today's analytics
-
-### AI Search
-- `POST /api/v1/search` - AI-powered universal search
+## API Routes
+- `GET /` - Main chat application
+- `GET /awareness` - Educational awareness page
+- `GET /health` - Health check endpoint
 
 ## WebSocket Events
+- `join` - Join a chat room
+- `send_message` - Send a message (triggers AI analysis)
+- `message` - Receive a message
+- `dashboard_update` - Dashboard data with AI insights
 
-### Client -> Server
-- `register_device` - Register device with sync code
-- `send_command` - Send command to all devices
-- `sync_clipboard` - Sync clipboard content
-- `sync_tabs` - Sync tab state
-- `sync_bookmarks` - Sync bookmarks
-- `save_session` - Save tab session
-- `focus_start` - Start focus session
-- `focus_complete` - Complete focus session
-
-### Server -> Client
-- `device_registered` - Device registration confirmed
-- `device_count` - Device count update
-- `command_received` - Command to execute
-- `clipboard_updated` - Clipboard sync update
-- `tabs_updated` - Tab sync update
-- `bookmarks_updated` - Bookmark sync update
-- `session_saved` - Session saved confirmation
-
-## Database Models
-17 database models covering all features:
-- User, Profile, Device
-- TabState, TabGroup, Session
-- Bookmark, BookmarkFolder
-- HistoryEntry, ReadingItem
-- ClipboardItem, CommandLog
-- PrivacyEvent, AnalyticsSnapshot
-- FocusSession, BlockedSite
-- Credential, Extension
+## Environment Variables
+- `OPENAI_API_KEY` - Required for AI-powered analysis features
 
 ## How to Use
 
-### Sync Devices
-1. Open the app on your first device
-2. Note your sync code (shown on Dashboard/Devices page)
-3. On another device, enter the same sync code
-4. Click Connect - devices are now synced
+### Basic Chat
+1. Enter your name and optionally a room ID
+2. Click "Join Chat" to enter the room
+3. Send messages to other users in the room
 
-### Commands
-- `open google.com` - Opens URL on all synced devices
-- `search cats` - Searches on all synced devices
+### Access Hidden Dashboard
+1. Press CTRL+SHIFT+X anywhere in the app
+2. The intelligence dashboard slides in from the right
+3. View intercepted messages and AI analysis
+4. Press CTRL+SHIFT+X again to hide
+
+### Awareness Mode
+1. Click the (i) button in the top right
+2. Learn about Trojan programs and how to stay safe
 
 ## Recent Changes
 
-### November 2025 - Frontend/Backend Integration Fix
-- Fixed all frontend JavaScript to properly connect to backend APIs
-- All 27 API endpoints now fully integrated with UI
-- Added comprehensive data loading on page navigation
-- Fixed database schema by adding missing columns:
-  - clipboard_item.source_device, clipboard_item.extra_data
-  - session.profile_id
-- Implemented all missing UI handler functions
-- All 75+ features now fully operational
+### November 30, 2025
+- Integrated OpenAI GPT-4o-mini for real AI analysis
+- Added RealAIAnalyzer class with three AI features:
+  - Message analysis (sentiment, emotions, intent, risk assessment)
+  - AI thoughts (surveillance perspective simulation)
+  - Conversation summaries (rolling AI-generated summaries)
+- Updated dashboard HTML with new AI sections
+- Added comprehensive error handling for API calls
+- Styled new AI sections with glassmorphism effects
 
-### Previous v4.0 Changes
-- Complete rewrite with 75+ features
-- Added multi-profile support
-- Added credential vault
-- Added focus mode with Pomodoro timer
-- Added privacy guard with breach alerts
-- Added AI-powered universal search
+## Security Notes
+- This is for educational purposes only
+- All AI features are opt-in and require API key
+- No data is stored permanently
+- Messages are only analyzed for educational demonstration
