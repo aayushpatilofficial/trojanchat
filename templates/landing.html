@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrojanChat - Secure Messaging Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="landing-container">
+        <div class="theme-toggle">
+            <button id="themeBtn" class="theme-btn" title="Toggle Dark/Light Mode" onclick="toggleTheme()">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+        
+        <div class="landing-content">
+            <div class="landing-header">
+                <div class="landing-logo">💬</div>
+                <h1>TrojanChat</h1>
+                <p class="landing-tagline">Secure Real-Time Messaging Platform</p>
+            </div>
+            
+            <div class="landing-features">
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Secure</h3>
+                    <p>End-to-end encrypted messaging</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Real-Time</h3>
+                    <p>Instant message delivery</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🤖</span>
+                    <h3>AI-Powered</h3>
+                    <p>Smart analysis & insights</p>
+                </div>
+            </div>
+            
+            <div class="landing-auth">
+                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-large">
+                    <span>Sign In / Sign Up</span>
+                    <span class="btn-icon">→</span>
+                </a>
+                <p class="auth-hint">Sign in with Google, GitHub, or email</p>
+            </div>
+            
+            <div class="landing-footer">
+                <a href="/awareness" class="awareness-link-text">Learn about Cyber Security →</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

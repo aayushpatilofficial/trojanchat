@@ -11,14 +11,27 @@
 <body>
     <!-- MAIN CHAT INTERFACE -->
     <div class="container" id="mainContainer">
-        <!-- THEME TOGGLE -->
-        <div class="theme-toggle">
-            <button id="themeBtn" class="theme-btn" title="Toggle Dark/Light Mode">
-                <span class="theme-icon">🌙</span>
-            </button>
-            <a href="/awareness" class="awareness-link" title="Learn about Trojans & Cyber Security">
-                <span class="info-icon">ⓘ</span>
-            </a>
+        <!-- USER MENU & THEME TOGGLE -->
+        <div class="top-bar">
+            {% if user %}
+            <div class="user-menu">
+                {% if user.profile_image_url %}
+                <img src="{{ user.profile_image_url }}" alt="Profile" class="user-avatar">
+                {% else %}
+                <div class="user-avatar-placeholder">{{ user.first_name[0] if user.first_name else 'U' }}</div>
+                {% endif %}
+                <span class="user-name">{{ user.first_name or user.email or 'User' }}</span>
+                <a href="{{ url_for('replit_auth.logout') }}" class="logout-btn" title="Sign Out">Sign Out</a>
+            </div>
+            {% endif %}
+            <div class="theme-toggle">
+                <button id="themeBtn" class="theme-btn" title="Toggle Dark/Light Mode" onclick="toggleTheme()">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <a href="/awareness" class="awareness-link" title="Learn about Trojans & Cyber Security">
+                    <span class="info-icon">i</span>
+                </a>
+            </div>
         </div>
 
         <!-- HEADER -->
@@ -508,6 +521,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 </body>
 </html>

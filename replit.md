@@ -3,6 +3,13 @@
 ## Overview
 TrojanChat is an educational cyber awareness application designed to teach users about hidden intelligence systems and digital surveillance. It appears as a simple chat application but contains a hidden AI analysis dashboard (revealed with CTRL+SHIFT+X) that demonstrates how AI systems could theoretically monitor and analyze user communications.
 
+## Recent Changes (November 2025)
+- **Authentication**: Added Replit Auth for secure user login/signup (supports Google, GitHub, email)
+- **Color Scheme**: Updated to minimalist black/white design matching reference aesthetic
+- **Dark Mode**: Implemented dark/light mode toggle with localStorage persistence
+- **Landing Page**: New landing page for logged-out users with sign-in options
+- **User Info**: Chat interface shows logged-in user's name and profile picture
+
 ## Purpose
 This is an **educational tool only** - designed to raise awareness about:
 - How hidden data collection can work in seemingly innocent apps
@@ -11,11 +18,17 @@ This is an **educational tool only** - designed to raise awareness about:
 
 ## Key Features
 
+### Authentication System
+- Replit Auth integration (Google, GitHub, X, Apple, email/password)
+- Protected routes require login
+- User profile display with sign-out option
+- PostgreSQL database for user sessions
+
 ### Chat Interface
 - Real-time chat with Socket.IO
 - Room-based messaging system
-- Clean, modern UI with glassmorphism effects
-- Dark/light mode toggle
+- Clean, minimalist black/white UI
+- Dark/light mode toggle (persisted in localStorage)
 
 ### Hidden Intelligence Dashboard (CTRL+SHIFT+X)
 Comprehensive AI-powered analysis dashboard with:
@@ -72,13 +85,19 @@ Comprehensive AI-powered analysis dashboard with:
 ## File Structure
 ```
 /
-├── main.py                 # Flask server with AI integration
+├── main.py                 # Flask server with AI integration & routes
+├── app.py                  # Flask app initialization & database setup
+├── models.py               # SQLAlchemy models (User, OAuth)
+├── replit_auth.py          # Replit Auth blueprint & helpers
 ├── templates/
 │   ├── index.html          # Main chat interface + dashboard
+│   ├── landing.html        # Landing page for logged-out users
+│   ├── 403.html            # Access denied page
 │   └── awareness.html      # Educational awareness page
 └── static/
-    ├── style.css           # All styling (2000+ lines)
-    └── chat.js             # Frontend JavaScript (1200+ lines)
+    ├── style.css           # All styling (2600+ lines)
+    ├── chat.js             # Frontend JavaScript (1200+ lines)
+    └── theme.js            # Dark/light mode toggle logic
 ```
 
 ## API Routes

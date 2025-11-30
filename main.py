@@ -7,8 +7,9 @@ could theoretically exist within innocent-looking applications. All analysis is 
 without actual spying, data storage, or external transmission. Purpose: Cyber awareness education.
 """
 
-from flask import Flask, render_template, request
+from flask import render_template, request, session, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_login import current_user
 import uuid
 from datetime import datetime
 import random
@@ -19,9 +20,20 @@ import json
 from google import genai
 from google.genai import types
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'trojan-exhibition-secret-key-2025'
+from app import app, db
+from models import User, OAuth
+from replit_auth import make_replit_blueprint, require_login
+
+with app.app_context():
+    db.create_all()
+
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
 
 # Using Gemini AI - blueprint:python_gemini
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -770,13 +782,21 @@ Respond ONLY with valid JSON:
 
 @app.route('/')
 def index():
-    """Main chat page."""
-    return render_template('index.html')
+    """Landing page for unauthenticated users, chat page for authenticated users."""
+    if current_user.is_authenticated:
+        return render_template('index.html', user=current_user)
+    return render_template('landing.html')
+
+@app.route('/chat')
+@require_login
+def chat():
+    """Protected chat page."""
+    return render_template('index.html', user=current_user)
 
 @app.route('/awareness')
 def awareness():
     """Cyber awareness education page."""
-    return render_template('awareness.html')
+    return render_template('awareness.html', user=current_user if current_user.is_authenticated else None)
 
 # ============================================================================
 # WEBSOCKET EVENTS
@@ -983,4 +1003,4 @@ def handle_disconnect():
     pass
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000, use_reloader=False)

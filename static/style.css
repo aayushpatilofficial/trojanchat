@@ -4,16 +4,16 @@
 
 /* CSS CUSTOM PROPERTIES (Variables) */
 :root {
-    /* Primary Colors */
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --primary-light: #818cf8;
-    --primary-glow: rgba(99, 102, 241, 0.4);
+    /* Primary Colors - Minimalist Black */
+    --primary: #000000;
+    --primary-dark: #000000;
+    --primary-light: #333333;
+    --primary-glow: rgba(0, 0, 0, 0.1);
     
     /* Accent Colors */
-    --accent: #22d3ee;
-    --accent-dark: #06b6d4;
-    --accent-glow: rgba(34, 211, 238, 0.3);
+    --accent: #000000;
+    --accent-dark: #000000;
+    --accent-glow: rgba(0, 0, 0, 0.1);
     
     /* Status Colors */
     --success: #22c55e;
@@ -21,26 +21,26 @@
     --danger: #ef4444;
     --info: #3b82f6;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-    --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+    /* Gradients - Minimalist */
+    --gradient-primary: linear-gradient(135deg, #000000 0%, #333333 100%);
+    --gradient-accent: linear-gradient(135deg, #000000 0%, #333333 100%);
     --gradient-danger: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-    --gradient-dark: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    --gradient-dark: linear-gradient(180deg, #000000 0%, #111111 100%);
     
-    /* Light Theme */
-    --bg-primary: #f8fafc;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #f1f5f9;
-    --bg-glass: rgba(255, 255, 255, 0.7);
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --border-color: rgba(148, 163, 184, 0.3);
+    /* Light Theme - Clean White */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #F5F5F5;
+    --bg-glass: rgba(255, 255, 255, 0.95);
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --border-color: #CCCCCC;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+    --shadow-md: rgba(0, 0, 0, 0.08) 0px 4px 12px 0px;
+    --shadow-lg: rgba(0, 0, 0, 0.08) 0px 8px 24px 0px;
+    --shadow-xl: rgba(0, 0, 0, 0.1) 0px 16px 40px 0px;
+    --shadow-glow: rgba(0, 0, 0, 0.08) 0px 4px 12px 0px;
     
     /* Spacing */
     --space-xs: 0.25rem;
@@ -50,16 +50,16 @@
     --space-xl: 2rem;
     --space-2xl: 3rem;
     
-    /* Border Radius */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-2xl: 1.5rem;
+    /* Border Radius - Minimal */
+    --radius-sm: 3px;
+    --radius-md: 3px;
+    --radius-lg: 3px;
+    --radius-xl: 6px;
+    --radius-2xl: 8px;
     --radius-full: 9999px;
     
-    /* Typography */
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Typography - System Fonts */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     
     /* Transitions */
@@ -71,19 +71,26 @@
 
 /* Dark Theme */
 [data-theme="dark"] {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-glass: rgba(30, 41, 59, 0.8);
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
-    --border-color: rgba(100, 116, 139, 0.3);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 60px rgba(99, 102, 241, 0.2);
+    --primary: #FFFFFF;
+    --primary-dark: #FFFFFF;
+    --primary-light: #CCCCCC;
+    --primary-glow: rgba(255, 255, 255, 0.1);
+    
+    --bg-primary: #000000;
+    --bg-secondary: #111111;
+    --bg-tertiary: #1a1a1a;
+    --bg-glass: rgba(17, 17, 17, 0.95);
+    --text-primary: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --text-muted: #888888;
+    --border-color: #333333;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: rgba(0, 0, 0, 0.3) 0px 4px 12px 0px;
+    --shadow-lg: rgba(0, 0, 0, 0.4) 0px 8px 24px 0px;
+    --shadow-xl: rgba(0, 0, 0, 0.5) 0px 16px 40px 0px;
+    --shadow-glow: rgba(255, 255, 255, 0.05) 0px 4px 12px 0px;
+    
+    --gradient-primary: linear-gradient(135deg, #FFFFFF 0%, #CCCCCC 100%);
 }
 
 /* ============================================
@@ -2364,4 +2371,276 @@ body::before {
     padding: var(--space-xs) var(--space-sm);
     background: rgba(30, 41, 59, 0.6);
     border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   LANDING PAGE STYLES
+   ============================================ */
+
+.landing-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    background: var(--bg-primary);
+}
+
+.landing-content {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.landing-header {
+    margin-bottom: var(--space-2xl);
+}
+
+.landing-logo {
+    font-size: 4rem;
+    margin-bottom: var(--space-md);
+    animation: float 3s ease-in-out infinite;
+}
+
+.landing-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+    letter-spacing: -0.02em;
+}
+
+.landing-tagline {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+}
+
+.landing-features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-2xl);
+}
+
+.feature-card {
+    padding: var(--space-lg);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+    display: block;
+}
+
+.feature-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.feature-card p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.landing-auth {
+    margin-bottom: var(--space-xl);
+}
+
+.auth-hint {
+    margin-top: var(--space-md);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.landing-footer {
+    margin-top: var(--space-xl);
+}
+
+.awareness-link-text {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color var(--transition-base);
+}
+
+.awareness-link-text:hover {
+    color: var(--text-primary);
+}
+
+/* ============================================
+   USER MENU & TOP BAR STYLES
+   ============================================ */
+
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.user-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .user-avatar-placeholder {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.logout-btn {
+    padding: var(--space-sm) var(--space-md);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-base);
+}
+
+.logout-btn:hover {
+    background: var(--primary);
+    color: var(--bg-primary);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .logout-btn:hover {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+/* Adjust container padding for fixed top bar */
+.container {
+    padding-top: calc(60px + var(--space-lg));
+}
+
+/* ============================================
+   ERROR PAGE STYLES
+   ============================================ */
+
+.error-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    background: var(--bg-primary);
+}
+
+.error-content {
+    text-align: center;
+    max-width: 400px;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-lg);
+}
+
+.error-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.error-content p {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.error-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    margin-top: var(--space-xl);
+}
+
+/* Secondary Button Style */
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--primary);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 640px) {
+    .landing-features {
+        grid-template-columns: 1fr;
+    }
+    
+    .landing-header h1 {
+        font-size: 2rem;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+    }
+    
+    .top-bar {
+        padding: var(--space-sm) var(--space-md);
+    }
+    
+    .user-name {
+        display: none;
+    }
 }

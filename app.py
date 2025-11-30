@@ -24,8 +24,3 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 
 db.init_app(app)
-
-with app.app_context():
-    import models
-    db.create_all()
-    logging.info("Database tables created")

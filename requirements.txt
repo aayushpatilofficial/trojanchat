@@ -1,6 +1,6 @@
 # TrojanChat - Real-Time Ethical Cyber Intelligence Simulator
 # Requirements for Flask backend
-# 
+#
 # Installation: pip install -r requirements.txt
 
 # Web Framework
@@ -27,6 +27,9 @@ google-genai
 email-validator
 Flask-Dance
 Flask-Login
-Flask-SQLAlchemy
 PyJWT
 sift-stack-py
+flask-sqlalchemy
+oauthlib
+psycopg2-binary
+sqlalchemy
