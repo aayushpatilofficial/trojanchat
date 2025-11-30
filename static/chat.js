@@ -306,6 +306,64 @@ function updateDashboard(data) {
         updateAISummary(data.ai_summary);
     }
 
+    // ====== NEW ADVANCED FEATURES ======
+    
+    // Threat level and energy
+    if (data.threat_level) {
+        updateThreatLevel(data.threat_level);
+    }
+    if (data.ai_energy !== undefined) {
+        updateAIEnergy(data.ai_energy);
+    }
+    if (data.velocity) {
+        updateVelocity(data.velocity);
+    }
+    
+    // Topic and tone
+    if (data.topic) {
+        updateTopicDisplay(data.topic);
+    }
+    if (data.tone) {
+        updateToneDisplay(data.tone);
+    }
+    
+    // Mental stress and security
+    if (data.mental_stress) {
+        updateMentalStress(data.mental_stress);
+    }
+    updateSecurityChecks(data.spam_detection, data.phishing, data.unsafe_links);
+    
+    // Personality fingerprint and intent
+    if (data.personality_fingerprint) {
+        updatePersonalityFingerprint(data.personality_fingerprint);
+    }
+    if (data.ai_intent) {
+        updateIntentDisplay(data.ai_intent);
+    }
+    
+    // Word cloud
+    if (data.word_cloud) {
+        updateWordCloud(data.word_cloud);
+    }
+    
+    // AI emotional mirror and prediction
+    if (data.ai_emotional_mirror) {
+        updateAIEmotionalMirror(data.ai_emotional_mirror);
+    }
+    if (data.ai_prediction) {
+        updateAIPrediction(data.ai_prediction);
+    }
+    
+    // Reply suggestions
+    if (data.ai_replies) {
+        updateReplySuggestions(data.ai_replies);
+    }
+    
+    // Notification center
+    if (data.alerts) {
+        updateNotificationCenter(data.alerts);
+    }
+
     // Update charts
     if (dashboardActive) {
         updateAllCharts(data);
@@ -941,6 +999,247 @@ function updateAISummary(summary) {
     }
 
     container.innerHTML = html || '<p class="placeholder">Summary will update every 3 messages...</p>';
+}
+
+// ============================================================================
+// NEW ADVANCED FEATURES DISPLAY FUNCTIONS
+// ============================================================================
+
+function updateThreatLevel(threatLevel) {
+    const badge = document.getElementById('threatBadge');
+    if (!badge || !threatLevel) return;
+    
+    const indicator = badge.querySelector('.threat-indicator');
+    const label = badge.querySelector('.threat-label');
+    const score = badge.querySelector('.threat-score');
+    
+    indicator.className = `threat-indicator ${threatLevel.level}`;
+    label.textContent = threatLevel.label;
+    score.textContent = threatLevel.score + '%';
+}
+
+function updateAIEnergy(energy) {
+    const bar = document.getElementById('energyBar');
+    const value = document.getElementById('energyValue');
+    if (!bar || energy === undefined) return;
+    
+    const fill = bar.querySelector('.energy-fill');
+    fill.style.width = energy + '%';
+    value.textContent = energy + '%';
+    
+    fill.style.background = energy > 70 ? 'var(--danger)' : energy > 40 ? 'var(--warning)' : 'var(--success)';
+}
+
+function updateVelocity(velocity) {
+    const dial = document.getElementById('velocityDial');
+    const value = document.getElementById('velocityValue');
+    const status = document.getElementById('velocityStatus');
+    if (!dial || !velocity) return;
+    
+    value.textContent = velocity.velocity;
+    status.textContent = velocity.status.charAt(0).toUpperCase() + velocity.status.slice(1);
+    status.className = `velocity-status ${velocity.status}`;
+    
+    if (velocity.burst_detected) {
+        dial.classList.add('burst');
+    } else {
+        dial.classList.remove('burst');
+    }
+}
+
+function updateTopicDisplay(topic) {
+    const container = document.getElementById('topicTags');
+    if (!container || !topic) return;
+    
+    container.innerHTML = '';
+    for (const [topicName, score] of Object.entries(topic)) {
+        const tag = document.createElement('span');
+        tag.className = 'topic-tag';
+        tag.innerHTML = `${topicName} <small>(${score}%)</small>`;
+        container.appendChild(tag);
+    }
+}
+
+function updateToneDisplay(tone) {
+    const container = document.getElementById('toneDisplay');
+    if (!container || !tone) return;
+    
+    const primary = container.querySelector('.tone-primary');
+    const bar = container.querySelector('.tone-bar');
+    
+    primary.textContent = tone.primary.charAt(0).toUpperCase() + tone.primary.slice(1);
+    bar.style.width = tone.confidence + '%';
+}
+
+function updateMentalStress(stress) {
+    const fill = document.getElementById('stressFill');
+    const alerts = document.getElementById('stressAlerts');
+    if (!fill || !stress) return;
+    
+    fill.style.width = stress.warning_level + '%';
+    fill.style.background = stress.alert ? 'var(--danger)' : 'var(--success)';
+    
+    if (stress.indicators && Object.keys(stress.indicators).length > 0) {
+        alerts.innerHTML = Object.entries(stress.indicators)
+            .map(([category, keywords]) => `<div class="stress-alert ${category}">${category}: ${keywords.join(', ')}</div>`)
+            .join('');
+    } else {
+        alerts.innerHTML = '<p class="placeholder">No stress indicators detected</p>';
+    }
+}
+
+function updateSecurityChecks(spam, phishing, links) {
+    const spamCheck = document.getElementById('spamCheck');
+    const phishingCheck = document.getElementById('phishingCheck');
+    const linkCheck = document.getElementById('linkCheck');
+    
+    if (spamCheck && spam) {
+        const icon = spamCheck.querySelector('.check-icon');
+        const status = spamCheck.querySelector('.check-status');
+        icon.textContent = spam.is_bot ? '⚠' : '✓';
+        status.textContent = spam.is_bot ? 'Detected!' : 'Clear';
+        status.className = `check-status ${spam.is_bot ? 'danger' : 'safe'}`;
+    }
+    
+    if (phishingCheck && phishing) {
+        const icon = phishingCheck.querySelector('.check-icon');
+        const status = phishingCheck.querySelector('.check-status');
+        icon.textContent = phishing.is_phishing ? '⚠' : '✓';
+        status.textContent = phishing.is_phishing ? 'Alert!' : 'Clear';
+        status.className = `check-status ${phishing.is_phishing ? 'danger' : 'safe'}`;
+    }
+    
+    if (linkCheck && links) {
+        const icon = linkCheck.querySelector('.check-icon');
+        const status = linkCheck.querySelector('.check-status');
+        icon.textContent = links.count > 0 ? '⚠' : '✓';
+        status.textContent = links.count > 0 ? `${links.count} Suspicious` : 'Clear';
+        status.className = `check-status ${links.count > 0 ? 'warning' : 'safe'}`;
+    }
+}
+
+function updatePersonalityFingerprint(fingerprint) {
+    const typeEl = document.getElementById('fingerprintType');
+    if (!typeEl || !fingerprint) return;
+    
+    typeEl.textContent = fingerprint.type.charAt(0).toUpperCase() + fingerprint.type.slice(1);
+    typeEl.className = `fingerprint-type ${fingerprint.type}`;
+    
+    if (fingerprint.patterns) {
+        for (const [pattern, value] of Object.entries(fingerprint.patterns)) {
+            const bar = document.getElementById(`pattern-${pattern}`);
+            if (bar) {
+                bar.style.width = Math.min(100, value * 20) + '%';
+            }
+        }
+    }
+}
+
+function updateIntentDisplay(intent) {
+    const primary = document.getElementById('intentPrimary');
+    const subtext = document.getElementById('intentSubtext');
+    if (!primary || !intent) return;
+    
+    primary.textContent = intent.primary_intent ? 
+        intent.primary_intent.charAt(0).toUpperCase() + intent.primary_intent.slice(1) : 'Unknown';
+    
+    if (intent.emotional_subtext) {
+        subtext.textContent = intent.emotional_subtext;
+    }
+}
+
+function updateWordCloud(words) {
+    const container = document.getElementById('wordcloudContainer');
+    if (!container || !words || words.length === 0) return;
+    
+    container.innerHTML = '';
+    words.forEach(word => {
+        const span = document.createElement('span');
+        span.className = 'word-cloud-word';
+        span.style.fontSize = word.size + 'px';
+        span.style.opacity = 0.5 + (word.count / 10);
+        span.textContent = word.word;
+        container.appendChild(span);
+    });
+}
+
+function updateAIEmotionalMirror(mirror) {
+    const feeling = document.getElementById('aiFeeling');
+    const response = document.getElementById('aiResponse');
+    const intensity = document.getElementById('intensityFill');
+    if (!feeling || !mirror) return;
+    
+    const emojiMap = {
+        'curious': '🤔',
+        'concerned': '😟',
+        'amused': '😄',
+        'alarmed': '😨',
+        'intrigued': '🧐',
+        'neutral': '🤖'
+    };
+    
+    feeling.querySelector('.feeling-emoji').textContent = emojiMap[mirror.ai_feeling] || '🤖';
+    feeling.querySelector('.feeling-text').textContent = mirror.ai_feeling || 'Neutral';
+    
+    if (mirror.emotional_response) {
+        response.innerHTML = `<p>${escapeHtml(mirror.emotional_response)}</p>`;
+    }
+    
+    if (intensity && mirror.intensity !== undefined) {
+        intensity.style.width = mirror.intensity + '%';
+    }
+}
+
+function updateAIPrediction(prediction) {
+    const container = document.getElementById('predictionContent');
+    if (!container) return;
+    
+    if (!prediction) {
+        container.innerHTML = '<p class="placeholder">AI will predict the next message...</p>';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="prediction-text">"${escapeHtml(prediction.prediction)}"</div>
+        <div class="prediction-meta">
+            <span class="confidence">Confidence: ${prediction.confidence}%</span>
+            <span class="reasoning">${escapeHtml(prediction.reasoning)}</span>
+        </div>
+    `;
+}
+
+function updateReplySuggestions(replies) {
+    if (!replies) return;
+    
+    const casual = document.getElementById('replyCasual');
+    const thoughtful = document.getElementById('replyThoughtful');
+    const brief = document.getElementById('replyBrief');
+    
+    if (casual && replies.casual) casual.textContent = replies.casual;
+    if (thoughtful && replies.thoughtful) thoughtful.textContent = replies.thoughtful;
+    if (brief && replies.brief) brief.textContent = replies.brief;
+}
+
+function updateNotificationCenter(alerts) {
+    const container = document.getElementById('notificationList');
+    if (!container) return;
+    
+    if (!alerts || alerts.length === 0) {
+        container.innerHTML = '<p class="placeholder">Notifications will appear here...</p>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    alerts.forEach(alert => {
+        const notif = document.createElement('div');
+        notif.className = `notification-item ${alert.level}`;
+        notif.innerHTML = `
+            <span class="notif-icon">${alert.level === 'danger' ? '🚨' : alert.level === 'warning' ? '⚠️' : 'ℹ️'}</span>
+            <span class="notif-message">${escapeHtml(alert.message)}</span>
+            <span class="notif-type">${alert.type}</span>
+        `;
+        container.appendChild(notif);
+    });
 }
 
 // ============================================================================

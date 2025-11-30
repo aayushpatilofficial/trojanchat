@@ -314,7 +314,181 @@
                 </div>
             </div>
 
-            <!-- ROW 10: METADATA -->
+            <!-- ROW 10: THREAT LEVEL & AI ENERGY -->
+            <div class="dashboard-row">
+                <div class="dashboard-card threat-level-card">
+                    <h3 class="card-title">⚠️ Threat Level</h3>
+                    <div class="threat-badge" id="threatBadge">
+                        <span class="threat-indicator green"></span>
+                        <span class="threat-label">Normal</span>
+                        <span class="threat-score">0%</span>
+                    </div>
+                </div>
+                <div class="dashboard-card ai-energy-card">
+                    <h3 class="card-title">⚡ AI Energy Level</h3>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar" id="energyBar">
+                            <div class="energy-fill"></div>
+                        </div>
+                        <span class="energy-value" id="energyValue">0%</span>
+                    </div>
+                </div>
+                <div class="dashboard-card velocity-card">
+                    <h3 class="card-title">🚀 Message Velocity</h3>
+                    <div class="velocity-meter">
+                        <div class="velocity-dial" id="velocityDial">
+                            <span class="velocity-value" id="velocityValue">0</span>
+                        </div>
+                        <span class="velocity-status" id="velocityStatus">Normal</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 11: TOPIC & TONE DETECTION -->
+            <div class="dashboard-row">
+                <div class="dashboard-card topic-card">
+                    <h3 class="card-title">📌 Topic Detection</h3>
+                    <div class="topic-tags" id="topicTags">
+                        <span class="topic-tag">Awaiting...</span>
+                    </div>
+                </div>
+                <div class="dashboard-card tone-card">
+                    <h3 class="card-title">🎭 Tone Classifier</h3>
+                    <div class="tone-display" id="toneDisplay">
+                        <span class="tone-primary">Neutral</span>
+                        <div class="tone-confidence">
+                            <div class="tone-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 12: MENTAL STRESS & SPAM DETECTION -->
+            <div class="dashboard-row">
+                <div class="dashboard-card mental-stress-card">
+                    <h3 class="card-title">🧠 Mental Stress Indicators</h3>
+                    <div class="stress-indicators" id="stressIndicators">
+                        <div class="stress-meter">
+                            <div class="stress-fill" id="stressFill"></div>
+                        </div>
+                        <div class="stress-alerts" id="stressAlerts">
+                            <p class="placeholder">No stress indicators detected</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card security-card">
+                    <h3 class="card-title">🔒 Security Analysis</h3>
+                    <div class="security-checks" id="securityChecks">
+                        <div class="check-item" id="spamCheck">
+                            <span class="check-icon">✓</span>
+                            <span class="check-label">Spam Detection</span>
+                            <span class="check-status safe">Clear</span>
+                        </div>
+                        <div class="check-item" id="phishingCheck">
+                            <span class="check-icon">✓</span>
+                            <span class="check-label">Phishing Detection</span>
+                            <span class="check-status safe">Clear</span>
+                        </div>
+                        <div class="check-item" id="linkCheck">
+                            <span class="check-icon">✓</span>
+                            <span class="check-label">Link Safety</span>
+                            <span class="check-status safe">Clear</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 13: PERSONALITY FINGERPRINT -->
+            <div class="dashboard-row">
+                <div class="dashboard-card fingerprint-card">
+                    <h3 class="card-title">🔍 Personality Fingerprint</h3>
+                    <div class="fingerprint-display" id="fingerprintDisplay">
+                        <div class="fingerprint-type" id="fingerprintType">Unknown</div>
+                        <div class="fingerprint-patterns" id="fingerprintPatterns">
+                            <div class="pattern-bar"><span>Impulsive</span><div class="bar-fill" id="pattern-impulsive"></div></div>
+                            <div class="pattern-bar"><span>Logical</span><div class="bar-fill" id="pattern-logical"></div></div>
+                            <div class="pattern-bar"><span>Emotional</span><div class="bar-fill" id="pattern-emotional"></div></div>
+                            <div class="pattern-bar"><span>Structured</span><div class="bar-fill" id="pattern-structured"></div></div>
+                            <div class="pattern-bar"><span>Chaotic</span><div class="bar-fill" id="pattern-chaotic"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card intent-card">
+                    <h3 class="card-title">🎯 Intent Detection</h3>
+                    <div class="intent-display" id="intentDisplay">
+                        <div class="intent-primary" id="intentPrimary">Awaiting...</div>
+                        <div class="intent-subtext" id="intentSubtext">No emotional subtext detected</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 14: WORD CLOUD -->
+            <div class="dashboard-row">
+                <div class="dashboard-card wordcloud-card full-width">
+                    <h3 class="card-title">☁️ Keyword Heatmap / Word Cloud</h3>
+                    <div class="wordcloud-container" id="wordcloudContainer">
+                        <p class="placeholder">Word cloud will populate as messages are sent...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 15: AI EMOTIONAL MIRROR -->
+            <div class="dashboard-row">
+                <div class="dashboard-card ai-mirror-card">
+                    <h3 class="card-title">🪞 AI Emotional Mirror</h3>
+                    <div class="ai-mirror-content" id="aiMirrorContent">
+                        <div class="ai-feeling" id="aiFeeling">
+                            <span class="feeling-emoji">🤖</span>
+                            <span class="feeling-text">Neutral</span>
+                        </div>
+                        <div class="ai-response" id="aiResponse">
+                            <p>AI is observing...</p>
+                        </div>
+                        <div class="ai-intensity-bar">
+                            <div class="intensity-fill" id="intensityFill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card ai-prediction-card">
+                    <h3 class="card-title">🔮 Next Message Prediction</h3>
+                    <div class="prediction-content" id="predictionContent">
+                        <p class="placeholder">AI will predict the next message...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 16: REPLY SUGGESTIONS -->
+            <div class="dashboard-row">
+                <div class="dashboard-card reply-suggestions-card full-width">
+                    <h3 class="card-title">💬 AI Reply Suggestions</h3>
+                    <div class="reply-suggestions" id="replySuggestions">
+                        <div class="reply-option casual">
+                            <span class="reply-label">Casual:</span>
+                            <span class="reply-text" id="replyCasual">...</span>
+                        </div>
+                        <div class="reply-option thoughtful">
+                            <span class="reply-label">Thoughtful:</span>
+                            <span class="reply-text" id="replyThoughtful">...</span>
+                        </div>
+                        <div class="reply-option brief">
+                            <span class="reply-label">Brief:</span>
+                            <span class="reply-text" id="replyBrief">...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 17: LIVE ALERTS NOTIFICATION CENTER -->
+            <div class="dashboard-row">
+                <div class="dashboard-card notification-center-card full-width">
+                    <h3 class="card-title">🔔 AI Notification Center</h3>
+                    <div class="notification-list" id="notificationList">
+                        <p class="placeholder">Notifications will appear here...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 18: METADATA -->
             <div class="dashboard-row">
                 <div class="dashboard-card metadata-card">
                     <h3 class="card-title">Latest Analysis</h3>

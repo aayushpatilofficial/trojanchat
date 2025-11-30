@@ -1,0 +1,211 @@
+These features silently run in the background and activate in the hidden dashboard:
+
+⭐ Real-time sentiment graph
+
+Shows user mood changing over time.
+
+⭐ Emotion tagging per message
+
+(joy / sadness / anger / confusion / excitement)
+
+⭐ Topic detection
+
+Automatically identifies topic:
+
+personal
+
+academic
+
+finance
+
+health
+
+social
+
+gaming
+
+mental state
+
+⭐ Tone classifier
+
+Detects if conversation is:
+
+casual
+
+tense
+
+sarcastic
+
+serious
+
+urgent
+
+formal
+
+friendly
+
+⭐ Toxicity detection
+
+Flags: bullying, harassment, threats, abusive language.
+
+⭐ Depression/mental stress indicators
+
+If user uses words like “tired… depressed… empty…” → soft warning.
+
+⭐ Personality fingerprinting (safe model)
+
+Detect if user’s messages match patterns of:
+
+impulsive
+
+logical
+
+emotional
+
+structured
+
+chaotic
+
+✅ 2. Hidden “Trojan Functions” (But Ethical)
+
+These functions activate ONLY from the secret dashboard:
+
+⭐ Live message reconstruction
+
+AI predicts the user’s next message based on their pattern.
+
+⭐ Auto-summary panel
+
+Summarizes last 5, 10, or 20 messages instantly.
+
+⭐ Conversation risk score
+
+0–100 score based on tone, toxicity, emotional instability.
+
+⭐ Hidden AI reply-suggester
+
+Suggests what the other user might reply.
+
+⭐ Keyword heatmap
+
+Visual heatmap showing which words dominate the conversation.
+
+⭐ Intent prediction
+
+AI predicts what the user is trying to do (informing, asking, arguing, venting, joking).
+
+✅ 3. Visual AI Analytics (This part blows judges' minds)
+
+These are powerful data visualization dashboards:
+
+⭐ Mood timeline graph
+
+Plots emotions.
+
+⭐ Sentiment roller-coaster line chart
+
+Live fluctuations.
+
+⭐ Word clouds (safe + exhibition friendly)
+
+Shows dominant words.
+
+⭐ Trigger map
+
+Shows which phrases triggered specific alerts.
+
+⭐ Message velocity meter
+
+Tracks how fast the user is typing (high velocity = excitement or stress).
+
+✅ 4. Advanced Cybersecurity Layer (Award-Winning Feature Set)
+⭐ Spam/bot detection
+
+Detects if messages look automated.
+
+⭐ Phishing pattern detector
+
+Flags phrases that resemble scam messages (for education only).
+
+⭐ Unsafe link detection (dummy links only)
+
+Highlights suspicious URLs (simulation only).
+
+⭐ Fake “Dark Mode Forensics View”
+
+Shows logs in a hacker-style UI (for visual effect only).
+
+✅ 5. Human-AI Interaction Layer
+
+Makes your TrojanChat feel like a living machine:
+
+⭐ AI emotional mirror
+
+Shows what the machine feels while reading messages.
+
+⭐ AI energy bar
+
+Shows how “intense” the chat currently is.
+
+⭐ AI thought stream (animated)
+
+Shows what the AI is analyzing in real time.
+
+⭐ Typing pattern mimic
+
+AI mimics human typing for replies.
+
+✅ 6. Hidden Controls (Trojan-Style Secret Features)
+⭐ Secret activation command
+
+Typing “/unlock” or entering a special sequence opens the hidden dashboard.
+
+⭐ Dual-mode chat
+
+Normal mode → only chat
+Trojan mode → full AI intelligence panel
+
+⭐ Stealth logging (simulation)
+
+Shows how intelligence collects and cleans data WITHOUT showing any private content.
+
+⭐ Split-screen analyzer
+
+Left = actual chat
+Right = what AI is thinking
+
+Judges love this.
+
+✅ 7. Smart Automation Tools (Big Brain Features)
+⭐ Auto-respond bot (optional)
+
+Provides smart replies if user is confused or emotional.
+
+⭐ Auto-topic summarizer
+
+Displays what the conversation is mostly about.
+
+⭐ AI Notification center
+
+Pop-ups like:
+
+“Emotion spike detected”
+
+“Suspicion of argument rising”
+
+“User might be stressed”
+
+⭐ Threat level badge
+
+Green / Yellow / Red — based on message tone.
+
+✅ 8. Presentation-Specific Features (For Exhibitions)
+⭐ A full story mode
+
+“This chat looks normal, but deep inside, 🚨 hidden intelligence is running.”
+
+⭐ Judge mode
+
+Preloaded conversation that shows all features firing in 30 seconds.
+
+⭐ Data wipe animation

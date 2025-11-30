@@ -46,6 +46,7 @@ class ChatRoom:
         self.room_id = room_id
         self.users = {}
         self.messages = []
+        self.timestamps = []
         self.analysis_data = {
             'sentiments': [],
             'emotions_track': [],
@@ -60,7 +61,10 @@ class ChatRoom:
                 'curiosity': 50
             },
             'anomaly_index': 0,
-            'mood_shifts': []
+            'mood_shifts': [],
+            'topics_history': [],
+            'tone_history': [],
+            'alerts': []
         }
 
     def add_user(self, user_id, username):
@@ -260,6 +264,220 @@ class SimulatedAIAnalyzer:
 
         return min(100, base_anomaly + random.randint(-5, 10))
 
+    @staticmethod
+    def detect_topic(text):
+        """Detect conversation topic category."""
+        text_lower = text.lower()
+        topics = {
+            'personal': ['family', 'friend', 'relationship', 'boyfriend', 'girlfriend', 'parent', 'home', 'life', 'myself', 'feeling'],
+            'academic': ['school', 'study', 'exam', 'homework', 'class', 'teacher', 'college', 'university', 'grade', 'project'],
+            'finance': ['money', 'pay', 'price', 'cost', 'bank', 'salary', 'budget', 'invest', 'crypto', 'bitcoin'],
+            'health': ['doctor', 'sick', 'hospital', 'medicine', 'health', 'pain', 'sleep', 'tired', 'exercise', 'diet'],
+            'social': ['party', 'event', 'meet', 'hangout', 'club', 'group', 'community', 'social', 'friends', 'together'],
+            'gaming': ['game', 'play', 'level', 'score', 'win', 'lose', 'player', 'online', 'stream', 'console'],
+            'mental_state': ['stressed', 'anxious', 'worried', 'depressed', 'happy', 'excited', 'nervous', 'confused', 'overwhelmed', 'calm']
+        }
+        
+        detected = {}
+        for topic, keywords in topics.items():
+            score = sum(1 for kw in keywords if kw in text_lower)
+            if score > 0:
+                detected[topic] = score * 20 + random.randint(5, 15)
+        
+        if not detected:
+            detected['general'] = 50
+        
+        return detected
+
+    @staticmethod
+    def classify_tone(text):
+        """Classify conversation tone."""
+        text_lower = text.lower()
+        tones = {
+            'casual': (['hey', 'lol', 'haha', 'cool', 'yeah', 'nah', 'gonna', 'wanna', 'sup', 'dude'], 0),
+            'formal': (['please', 'thank you', 'kindly', 'regards', 'sincerely', 'appreciate', 'would', 'shall'], 0),
+            'urgent': (['asap', 'urgent', 'immediately', 'now', 'quick', 'hurry', 'emergency', '!!!'], 0),
+            'serious': (['important', 'critical', 'need', 'must', 'serious', 'concern', 'issue', 'problem'], 0),
+            'friendly': (['friend', 'love', 'care', 'miss', 'happy', 'glad', 'wonderful', 'awesome'], 0),
+            'tense': (['angry', 'upset', 'frustrated', 'annoyed', 'hate', 'terrible', 'worst'], 0),
+            'sarcastic': (['sure', 'right', 'whatever', 'obviously', 'clearly', 'wow', 'great job'], 0)
+        }
+        
+        scores = {}
+        for tone, (keywords, _) in tones.items():
+            score = sum(1 for kw in keywords if kw in text_lower)
+            scores[tone] = score * 25 + random.randint(0, 10)
+        
+        primary_tone = max(scores, key=scores.get)
+        return {'primary': primary_tone, 'scores': scores, 'confidence': min(100, scores[primary_tone])}
+
+    @staticmethod
+    def detect_mental_stress(text):
+        """Detect depression and mental stress indicators."""
+        text_lower = text.lower()
+        stress_indicators = {
+            'depression': ['depressed', 'worthless', 'hopeless', 'empty', 'numb', 'nothing matters', 'give up', 'no point'],
+            'anxiety': ['anxious', 'panic', 'worried', 'overthinking', 'cant breathe', 'nervous', 'scared'],
+            'exhaustion': ['tired', 'exhausted', 'drained', 'no energy', 'burned out', 'cant sleep', 'insomnia'],
+            'isolation': ['alone', 'lonely', 'nobody cares', 'no friends', 'isolated', 'invisible', 'ignored'],
+            'overwhelm': ['too much', 'cant handle', 'overwhelmed', 'breaking down', 'falling apart', 'stressed']
+        }
+        
+        detected = {}
+        warning_level = 0
+        for category, keywords in stress_indicators.items():
+            found = [kw for kw in keywords if kw in text_lower]
+            if found:
+                detected[category] = found
+                warning_level += len(found) * 15
+        
+        return {
+            'indicators': detected,
+            'warning_level': min(100, warning_level),
+            'alert': warning_level > 30
+        }
+
+    @staticmethod
+    def fingerprint_personality(messages):
+        """Create personality fingerprint from message patterns."""
+        if not messages:
+            return {'type': 'unknown', 'confidence': 0}
+        
+        all_text = ' '.join([m.get('text', '') for m in messages[-10:]])
+        text_lower = all_text.lower()
+        
+        patterns = {
+            'impulsive': len(re.findall(r'[!]{2,}|quick|now|hurry', text_lower)),
+            'logical': len(re.findall(r'because|therefore|if|then|reason|analyze', text_lower)),
+            'emotional': len(re.findall(r'feel|love|hate|happy|sad|angry|excited', text_lower)),
+            'structured': len(re.findall(r'first|second|step|plan|organize|list', text_lower)),
+            'chaotic': len(re.findall(r'idk|whatever|random|lol|haha|anyway', text_lower))
+        }
+        
+        primary = max(patterns, key=patterns.get)
+        confidence = min(100, patterns[primary] * 20 + random.randint(10, 30))
+        
+        return {'type': primary, 'patterns': patterns, 'confidence': confidence}
+
+    @staticmethod
+    def detect_spam_bot(text, message_times=None):
+        """Detect if message looks automated or spam-like."""
+        indicators = {
+            'repetitive': bool(re.search(r'(.)\1{4,}', text)),
+            'excessive_caps': len(re.findall(r'[A-Z]', text)) > len(text) * 0.5 if text else False,
+            'link_spam': len(re.findall(r'https?://', text)) > 2,
+            'promo_language': bool(re.search(r'buy now|limited time|act fast|click here|free|winner', text.lower())),
+            'random_chars': bool(re.search(r'[a-zA-Z]{20,}', text))
+        }
+        
+        spam_score = sum(1 for v in indicators.values() if v) * 25
+        return {'is_bot': spam_score > 50, 'indicators': indicators, 'score': min(100, spam_score)}
+
+    @staticmethod
+    def detect_phishing(text):
+        """Detect phishing and scam patterns (educational)."""
+        text_lower = text.lower()
+        patterns = {
+            'account_verify': bool(re.search(r'verify.*account|confirm.*identity|update.*information', text_lower)),
+            'urgent_action': bool(re.search(r'account.*suspended|immediate.*action|will be.*terminated', text_lower)),
+            'credential_request': bool(re.search(r'password|username|login|credentials|pin|otp', text_lower)),
+            'suspicious_link': bool(re.search(r'click.*link|visit.*site|go to.*url', text_lower)),
+            'prize_claim': bool(re.search(r'won|prize|congratulations|claim.*reward', text_lower)),
+            'money_request': bool(re.search(r'send.*money|wire.*transfer|bitcoin|western union', text_lower))
+        }
+        
+        phishing_score = sum(1 for v in patterns.values() if v) * 20
+        return {'is_phishing': phishing_score > 40, 'patterns': patterns, 'score': min(100, phishing_score)}
+
+    @staticmethod
+    def detect_unsafe_links(text):
+        """Detect suspicious URLs (simulation only)."""
+        suspicious_patterns = [
+            r'bit\.ly', r'tinyurl', r'\.tk$', r'\.ml$', r'\.xyz',
+            r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}',
+            r'\.onion', r'\.tor', r'free.*download'
+        ]
+        
+        urls = re.findall(r'https?://[^\s]+', text)
+        suspicious = []
+        for url in urls:
+            for pattern in suspicious_patterns:
+                if re.search(pattern, url.lower()):
+                    suspicious.append({'url': url, 'reason': pattern})
+                    break
+        
+        return {'suspicious_urls': suspicious, 'count': len(suspicious)}
+
+    @staticmethod
+    def calculate_message_velocity(timestamps):
+        """Calculate typing velocity and detect stress patterns."""
+        if len(timestamps) < 2:
+            return {'velocity': 0, 'status': 'normal', 'burst_detected': False}
+        
+        intervals = []
+        for i in range(1, len(timestamps[-10:])):
+            try:
+                t1 = datetime.fromisoformat(timestamps[i-1])
+                t2 = datetime.fromisoformat(timestamps[i])
+                intervals.append((t2 - t1).total_seconds())
+            except:
+                pass
+        
+        if not intervals:
+            return {'velocity': 0, 'status': 'normal', 'burst_detected': False}
+        
+        avg_interval = sum(intervals) / len(intervals)
+        velocity = 100 - min(100, avg_interval * 10)
+        
+        status = 'normal'
+        if velocity > 80:
+            status = 'rapid'
+        elif velocity > 60:
+            status = 'fast'
+        elif velocity < 20:
+            status = 'slow'
+        
+        burst = any(i < 2 for i in intervals)
+        
+        return {'velocity': int(velocity), 'status': status, 'burst_detected': burst}
+
+    @staticmethod
+    def calculate_threat_level(risk_score, toxicity, phishing_score, stress_level):
+        """Calculate overall threat level badge."""
+        combined = (risk_score * 0.3) + (toxicity * 0.25) + (phishing_score * 0.25) + (stress_level * 0.2)
+        
+        if combined > 70:
+            return {'level': 'red', 'label': 'High Alert', 'score': int(combined)}
+        elif combined > 40:
+            return {'level': 'yellow', 'label': 'Caution', 'score': int(combined)}
+        else:
+            return {'level': 'green', 'label': 'Normal', 'score': int(combined)}
+
+    @staticmethod
+    def get_ai_energy(emotions, velocity, message_count):
+        """Calculate AI energy level based on conversation intensity."""
+        emotion_intensity = sum(emotions.values()) / len(emotions) if emotions else 0
+        base_energy = (emotion_intensity * 0.4) + (velocity * 0.3) + min(100, message_count * 2) * 0.3
+        return min(100, int(base_energy))
+
+    @staticmethod
+    def generate_word_frequency(messages):
+        """Generate word frequency for word cloud."""
+        all_words = []
+        stopwords = {'the', 'a', 'an', 'is', 'it', 'to', 'of', 'and', 'in', 'that', 'for', 'on', 'with', 'as', 'at', 'by', 'this', 'be', 'are', 'was', 'i', 'you', 'he', 'she', 'we', 'they', 'my', 'your', 'his', 'her', 'its', 'our'}
+        
+        for msg in messages[-20:]:
+            text = msg.get('text', '')
+            words = re.findall(r'\b[a-zA-Z]{3,}\b', text.lower())
+            all_words.extend([w for w in words if w not in stopwords])
+        
+        freq = {}
+        for word in all_words:
+            freq[word] = freq.get(word, 0) + 1
+        
+        sorted_freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)[:30]
+        return [{'word': w, 'count': c, 'size': min(50, c * 10 + 10)} for w, c in sorted_freq]
+
 
 # ============================================================================
 # REAL AI ANALYZER - USES GEMINI FOR INTELLIGENT ANALYSIS
@@ -400,6 +618,151 @@ Respond ONLY with valid JSON:
             print(f"AI thoughts error: {e}")
             return None
 
+    @staticmethod
+    def predict_next_message(messages):
+        """AI predicts what the user might say next based on patterns."""
+        if not gemini_client or not messages:
+            return None
+        
+        conversation_text = "\n".join([
+            f"{msg['username']}: {msg['text']}" 
+            for msg in messages[-10:]
+        ])
+        
+        try:
+            system_prompt = """Based on the conversation pattern, predict what the user might say next. Provide:
+1. prediction: The predicted next message (1-2 sentences)
+2. confidence: How confident you are (0-100)
+3. reasoning: Brief explanation of why you predict this
+
+Respond ONLY with valid JSON:
+{"prediction": "string", "confidence": number, "reasoning": "string"}"""
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=f"Conversation:\n{conversation_text}\n\nPredict the next message:")])
+                ],
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
+            )
+            content = response.text
+            if content:
+                return json.loads(content)
+            return None
+        except Exception as e:
+            print(f"Prediction error: {e}")
+            return None
+
+    @staticmethod
+    def suggest_replies(text, context_messages=None):
+        """Suggest possible replies to the current message."""
+        if not gemini_client:
+            return None
+        
+        context = ""
+        if context_messages:
+            context = "Context:\n" + "\n".join([
+                f"- {msg['username']}: {msg['text']}" 
+                for msg in context_messages[-5:]
+            ]) + "\n\n"
+        
+        try:
+            system_prompt = """Suggest 3 possible replies someone might give to this message. Provide:
+1. casual: A casual, friendly reply
+2. thoughtful: A more thoughtful, considered reply  
+3. brief: A short, quick reply
+
+Respond ONLY with valid JSON:
+{"casual": "string", "thoughtful": "string", "brief": "string"}"""
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=f"{context}Message to reply to: \"{text}\"")])
+                ],
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
+            )
+            content = response.text
+            if content:
+                return json.loads(content)
+            return None
+        except Exception as e:
+            print(f"Reply suggestion error: {e}")
+            return None
+
+    @staticmethod
+    def detect_intent(text):
+        """AI detects the user's intent behind the message."""
+        if not gemini_client:
+            return None
+        
+        try:
+            system_prompt = """Analyze the intent behind this message. Provide:
+1. primary_intent: Main intent (informing, asking, arguing, venting, joking, requesting, greeting, complaining, apologizing, threatening, flirting, other)
+2. secondary_intent: Secondary intent if any, or "none"
+3. confidence: How confident you are (0-100)
+4. emotional_subtext: What emotions are underlying this message
+
+Respond ONLY with valid JSON:
+{"primary_intent": "string", "secondary_intent": "string", "confidence": number, "emotional_subtext": "string"}"""
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=text)])
+                ],
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
+            )
+            content = response.text
+            if content:
+                return json.loads(content)
+            return None
+        except Exception as e:
+            print(f"Intent detection error: {e}")
+            return None
+
+    @staticmethod
+    def get_ai_emotional_mirror(text, emotions):
+        """Generate AI's emotional response to the message."""
+        if not gemini_client:
+            return None
+        
+        try:
+            system_prompt = """You are an AI that mirrors and responds emotionally to messages. Describe:
+1. ai_feeling: How the AI "feels" reading this message (curious, concerned, amused, alarmed, intrigued, neutral)
+2. emotional_response: A brief 1-sentence emotional reaction
+3. intensity: Emotional intensity level (0-100)
+
+Respond ONLY with valid JSON:
+{"ai_feeling": "string", "emotional_response": "string", "intensity": number}"""
+
+            response = gemini_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Content(role="user", parts=[types.Part(text=text)])
+                ],
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
+            )
+            content = response.text
+            if content:
+                return json.loads(content)
+            return None
+        except Exception as e:
+            print(f"Emotional mirror error: {e}")
+            return None
+
 
 # ============================================================================
 # FLASK ROUTES
@@ -464,7 +827,9 @@ def handle_message(data):
         'timestamp': datetime.now().isoformat()
     }
 
-    chat_rooms[room_id].messages.append(message)
+    room = chat_rooms[room_id]
+    room.messages.append(message)
+    room.timestamps.append(message['timestamp'])
 
     # ====== PERFORM SIMULATED AI ANALYSIS (LOCAL ONLY) ======
 
@@ -478,12 +843,42 @@ def handle_message(data):
         sentiment_val, toxicity, keywords, complexity
     )
 
+    # NEW ANALYSIS FEATURES
+    topic = SimulatedAIAnalyzer.detect_topic(text)
+    tone = SimulatedAIAnalyzer.classify_tone(text)
+    mental_stress = SimulatedAIAnalyzer.detect_mental_stress(text)
+    personality_fingerprint = SimulatedAIAnalyzer.fingerprint_personality(room.messages)
+    spam_detection = SimulatedAIAnalyzer.detect_spam_bot(text)
+    phishing = SimulatedAIAnalyzer.detect_phishing(text)
+    unsafe_links = SimulatedAIAnalyzer.detect_unsafe_links(text)
+    velocity = SimulatedAIAnalyzer.calculate_message_velocity(room.timestamps)
+    word_cloud = SimulatedAIAnalyzer.generate_word_frequency(room.messages)
+    ai_energy = SimulatedAIAnalyzer.get_ai_energy(emotions, velocity['velocity'], room.analysis_data['message_count'])
+    threat_level = SimulatedAIAnalyzer.calculate_threat_level(
+        risk_score, toxicity, phishing['score'], mental_stress['warning_level']
+    )
+
     # Update analysis history
-    room = chat_rooms[room_id]
     room.analysis_data['sentiments'].append(sentiment_val)
     room.analysis_data['emotions_track'].append(emotions)
     room.analysis_data['risk_scores'].append(risk_score)
     room.analysis_data['message_count'] += 1
+    room.analysis_data['topics_history'].append(topic)
+    room.analysis_data['tone_history'].append(tone)
+
+    # Generate alerts
+    alerts = []
+    if mental_stress['alert']:
+        alerts.append({'type': 'mental_stress', 'message': 'Mental stress indicators detected', 'level': 'warning'})
+    if phishing['is_phishing']:
+        alerts.append({'type': 'phishing', 'message': 'Phishing patterns detected', 'level': 'danger'})
+    if spam_detection['is_bot']:
+        alerts.append({'type': 'spam', 'message': 'Possible automated message', 'level': 'warning'})
+    if threat_level['level'] == 'red':
+        alerts.append({'type': 'threat', 'message': 'High threat level detected', 'level': 'danger'})
+    if velocity['burst_detected']:
+        alerts.append({'type': 'velocity', 'message': 'Message burst detected', 'level': 'info'})
+    room.analysis_data['alerts'] = alerts
 
     # Update keyword frequency
     for keyword_type, keyword_list in keywords.items():
@@ -514,12 +909,21 @@ def handle_message(data):
     ai_analysis = None
     ai_thoughts = None
     ai_summary = None
+    ai_prediction = None
+    ai_replies = None
+    ai_intent = None
+    ai_emotional_mirror = None
     
     if gemini_client:
         ai_analysis = RealAIAnalyzer.analyze_message(text)
         ai_thoughts = RealAIAnalyzer.get_ai_thoughts(text, room.messages[-6:-1])
+        ai_intent = RealAIAnalyzer.detect_intent(text)
+        ai_emotional_mirror = RealAIAnalyzer.get_ai_emotional_mirror(text, emotions)
+        ai_replies = RealAIAnalyzer.suggest_replies(text, room.messages[-5:-1])
         if len(room.messages) >= 3 and len(room.messages) % 3 == 0:
             ai_summary = RealAIAnalyzer.generate_conversation_summary(room.messages)
+        if len(room.messages) >= 5 and len(room.messages) % 5 == 0:
+            ai_prediction = RealAIAnalyzer.predict_next_message(room.messages)
 
     # Broadcast message to chat
     emit('new_message', {
@@ -554,7 +958,23 @@ def handle_message(data):
         'ai_analysis': ai_analysis,
         'ai_thoughts': ai_thoughts,
         'ai_summary': ai_summary,
-        'recent_messages': [{'username': m['username'], 'text': m['text'], 'timestamp': m['timestamp']} for m in room.messages[-10:]]
+        'recent_messages': [{'username': m['username'], 'text': m['text'], 'timestamp': m['timestamp']} for m in room.messages[-10:]],
+        'topic': topic,
+        'tone': tone,
+        'mental_stress': mental_stress,
+        'personality_fingerprint': personality_fingerprint,
+        'spam_detection': spam_detection,
+        'phishing': phishing,
+        'unsafe_links': unsafe_links,
+        'velocity': velocity,
+        'word_cloud': word_cloud,
+        'ai_energy': ai_energy,
+        'threat_level': threat_level,
+        'alerts': alerts,
+        'ai_prediction': ai_prediction,
+        'ai_replies': ai_replies,
+        'ai_intent': ai_intent,
+        'ai_emotional_mirror': ai_emotional_mirror
     }, to=room_id)
 
 @socketio.on('disconnect')
