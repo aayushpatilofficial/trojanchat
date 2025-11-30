@@ -1,6 +1,4 @@
-from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from flask_login import UserMixin
-from sqlalchemy import UniqueConstraint
 from datetime import datetime
 from app import db
 
@@ -15,19 +13,3 @@ class User(UserMixin, db.Model):
     
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-
-class OAuth(OAuthConsumerMixin, db.Model):
-    __tablename__ = 'flask_dance_oauth'
-    
-    user_id = db.Column(db.String, db.ForeignKey('users.id'))
-    browser_session_key = db.Column(db.String, nullable=False)
-    user = db.relationship('User')
-    
-    __table_args__ = (
-        UniqueConstraint(
-            'user_id',
-            'browser_session_key',
-            'provider',
-            name='uq_user_browser_session_key_provider',
-        ),
-    )

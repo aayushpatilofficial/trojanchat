@@ -4,7 +4,7 @@
 TrojanChat is an educational cyber awareness application designed to teach users about hidden intelligence systems and digital surveillance. It appears as a simple chat application but contains a hidden AI analysis dashboard (revealed with CTRL+SHIFT+X) that demonstrates how AI systems could theoretically monitor and analyze user communications.
 
 ## Recent Changes (November 2025)
-- **Authentication**: Added Replit Auth for secure user login/signup (supports Google, GitHub, email)
+- **Authentication**: CSV-based signup/login with password hashing (replaces Replit Auth)
 - **Color Scheme**: Updated to minimalist black/white design matching reference aesthetic
 - **Dark Mode**: Implemented dark/light mode toggle with localStorage persistence
 - **Landing Page**: New landing page for logged-out users with sign-in options
@@ -19,10 +19,11 @@ This is an **educational tool only** - designed to raise awareness about:
 ## Key Features
 
 ### Authentication System
-- Replit Auth integration (Google, GitHub, X, Apple, email/password)
+- CSV-based signup/login with email and password
+- Password hashing using werkzeug.security
+- CSRF protection on authentication forms
 - Protected routes require login
 - User profile display with sign-out option
-- PostgreSQL database for user sessions
 
 ### Chat Interface
 - Real-time chat with Socket.IO
@@ -87,15 +88,18 @@ Comprehensive AI-powered analysis dashboard with:
 /
 ├── main.py                 # Flask server with AI integration & routes
 ├── app.py                  # Flask app initialization & database setup
-├── models.py               # SQLAlchemy models (User, OAuth)
-├── replit_auth.py          # Replit Auth blueprint & helpers
+├── auth.py                 # CSV-based authentication (signup/login/logout)
+├── models.py               # SQLAlchemy models (User)
+├── data/
+│   └── users.csv           # User credentials storage (hashed passwords)
 ├── templates/
 │   ├── index.html          # Main chat interface + dashboard
 │   ├── landing.html        # Landing page for logged-out users
+│   ├── auth.html           # Login and signup forms
 │   ├── 403.html            # Access denied page
 │   └── awareness.html      # Educational awareness page
 └── static/
-    ├── style.css           # All styling (2600+ lines)
+    ├── style.css           # All styling (2700+ lines)
     ├── chat.js             # Frontend JavaScript (1200+ lines)
     └── theme.js            # Dark/light mode toggle logic
 ```
