@@ -90,6 +90,10 @@ Comprehensive AI-powered analysis dashboard with:
 ├── app.py                  # Flask app initialization & database setup
 ├── auth.py                 # CSV-based authentication (signup/login/logout)
 ├── models.py               # SQLAlchemy models (User)
+├── Procfile                # Render/Heroku process configuration
+├── render.yaml             # Render Blueprint configuration
+├── requirements.txt        # Python dependencies
+├── runtime.txt             # Python version
 ├── data/
 │   └── users.csv           # User credentials storage (hashed passwords)
 ├── templates/
@@ -117,6 +121,31 @@ Comprehensive AI-powered analysis dashboard with:
 
 ## Environment Variables
 - `GEMINI_API_KEY` - Required for AI-powered analysis features
+- `DATABASE_URL` - PostgreSQL database connection string
+- `SESSION_SECRET` - Secret key for session management (auto-generated if not set)
+
+## Deployment to Render
+
+This app is configured for easy deployment to Render.
+
+### Files for Render
+- `render.yaml` - Blueprint configuration for Render
+- `Procfile` - Process configuration (gunicorn with eventlet)
+- `runtime.txt` - Python version specification
+- `requirements.txt` - Python dependencies
+
+### Deploy Steps
+1. Push code to GitHub/GitLab
+2. On Render Dashboard, click "New +" > "Blueprint"
+3. Connect your repository
+4. Render will auto-detect `render.yaml` and configure everything
+5. Add your `GEMINI_API_KEY` in Environment Variables
+
+### Manual Deploy (without Blueprint)
+1. Create new "Web Service" on Render
+2. Set Build Command: `pip install -r requirements.txt`
+3. Set Start Command: `gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT main:app`
+4. Add environment variables: `GEMINI_API_KEY`, `DATABASE_URL`, `SESSION_SECRET`
 
 ## How to Use
 

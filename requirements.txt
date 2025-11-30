@@ -12,24 +12,25 @@ Flask-SocketIO==5.3.4
 python-socketio==5.9.0
 python-engineio==4.7.1
 
-# Async Framework
-Eventlet==0.33.3
+# Async Framework (required for SocketIO)
+eventlet==0.33.3
 
-# Optional but recommended for production
-# gunicorn==21.2.0
-# python-dotenv==1.0.0
+# Production WSGI Server
+gunicorn==21.2.0
 
-# Development (optional)
-# pytest==7.4.0
-# black==23.7.0
-openai
-google-genai
-email-validator
-Flask-Dance
-Flask-Login
-PyJWT
-sift-stack-py
-flask-sqlalchemy
-oauthlib
-psycopg2-binary
-sqlalchemy
+# Environment Variables
+python-dotenv==1.0.0
+
+# Database
+flask-sqlalchemy==3.1.1
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Authentication
+Flask-Login==0.6.3
+
+# AI Integration
+google-genai==0.3.0
+
+# Email Validation
+email-validator==2.1.0
