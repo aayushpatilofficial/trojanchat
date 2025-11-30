@@ -21,15 +21,15 @@ from google import genai
 from google.genai import types
 
 from app import app, db
-from models import User, OAuth
-from replit_auth import make_replit_blueprint, require_login
+from models import User
+from auth import auth_bp, require_login
 
 with app.app_context():
     db.create_all()
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+app.register_blueprint(auth_bp, url_prefix="/auth")
 
 @app.before_request
 def make_session_permanent():

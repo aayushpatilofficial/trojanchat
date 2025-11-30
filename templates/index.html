@@ -21,7 +21,7 @@
                 <div class="user-avatar-placeholder">{{ user.first_name[0] if user.first_name else 'U' }}</div>
                 {% endif %}
                 <span class="user-name">{{ user.first_name or user.email or 'User' }}</span>
-                <a href="{{ url_for('replit_auth.logout') }}" class="logout-btn" title="Sign Out">Sign Out</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn" title="Sign Out">Sign Out</a>
             </div>
             {% endif %}
             <div class="theme-toggle">

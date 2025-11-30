@@ -40,11 +40,15 @@
             </div>
             
             <div class="landing-auth">
-                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-large">
-                    <span>Sign In / Sign Up</span>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
+                    <span>Sign In</span>
                     <span class="btn-icon">→</span>
                 </a>
-                <p class="auth-hint">Sign in with Google, GitHub, or email</p>
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-large" style="margin-top: var(--space-md);">
+                    <span>Create Account</span>
+                    <span class="btn-icon">→</span>
+                </a>
+                <p class="auth-hint">Sign in or create an account to get started</p>
             </div>
             
             <div class="landing-footer">
