@@ -989,6 +989,248 @@ body::before {
     color: var(--text-primary);
 }
 
+/* Full Width Cards */
+.full-width {
+    flex: 1 1 100% !important;
+    min-width: 100%;
+}
+
+/* Message History Card */
+.message-history-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.message-history-list {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.intercepted-message {
+    padding: var(--space-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--primary);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.intercepted-message .msg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+}
+
+.intercepted-message .msg-user {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--primary);
+}
+
+.intercepted-message .msg-time {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.intercepted-message .msg-text {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* AI Thoughts Card */
+.ai-thoughts-card {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    border-color: rgba(34, 211, 238, 0.3);
+}
+
+.ai-thoughts-content {
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--accent);
+}
+
+.ai-thought-bubble {
+    margin-bottom: var(--space-md);
+}
+
+.ai-thought-bubble .thought-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-xs);
+}
+
+.ai-thought-bubble .thought-text {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-style: italic;
+    line-height: 1.5;
+    padding: var(--space-sm);
+    background: rgba(34, 211, 238, 0.1);
+    border-radius: var(--radius-md);
+}
+
+.ai-flags-list, .ai-inferences-list, .ai-data-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+}
+
+.ai-flag {
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(249, 115, 22, 0.2);
+    color: var(--warning);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.concern-meter {
+    margin-top: var(--space-md);
+    padding: var(--space-sm);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.concern-meter .meter-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-xs);
+}
+
+.concern-meter .meter-bar {
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.concern-meter .meter-fill {
+    height: 100%;
+    background: var(--gradient-danger);
+    border-radius: var(--radius-full);
+    transition: width var(--transition-base);
+}
+
+/* AI Analysis Card */
+.ai-analysis-card, .ai-inferences-card {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.ai-analysis-content, .ai-inferences-content {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.analysis-item {
+    padding: var(--space-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.analysis-item .item-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--primary-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.analysis-item .item-value {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    margin-top: 2px;
+}
+
+.inference-tag {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-sm);
+    margin: 2px;
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--primary-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+}
+
+.data-point {
+    display: inline-block;
+    padding: var(--space-xs) var(--space-sm);
+    margin: 2px;
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+}
+
+/* AI Summary Card */
+.ai-summary-card {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(22, 163, 74, 0.05) 100%);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.ai-summary-content {
+    padding: var(--space-md);
+}
+
+.summary-section {
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.summary-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.summary-section .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--success);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-xs);
+}
+
+.summary-section .section-value {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.theme-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+}
+
+.theme-tag {
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--success);
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
 /* Personality Traits */
 .traits-container {
     display: flex;

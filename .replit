@@ -17,6 +17,7 @@ deploymentTarget = "cloudrun"
 
 [agent]
 expertMode = true
+integrations = ["python_openai:1.0.0"]
 
 [[ports]]
 localPort = 3000
@@ -33,10 +34,6 @@ externalPort = 8099
 [[ports]]
 localPort = 33465
 externalPort = 9000
-
-[[ports]]
-localPort = 34021
-externalPort = 3001
 
 [[ports]]
 localPort = 42017

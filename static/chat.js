@@ -292,6 +292,20 @@ function updateDashboard(data) {
     // Update metadata
     updateMetadataDisplay(data);
 
+    // Update message history
+    updateMessageHistory(data.recent_messages);
+
+    // Update AI analysis sections
+    if (data.ai_thoughts) {
+        updateAIThoughts(data.ai_thoughts);
+    }
+    if (data.ai_analysis) {
+        updateAIAnalysis(data.ai_analysis);
+    }
+    if (data.ai_summary) {
+        updateAISummary(data.ai_summary);
+    }
+
     // Update charts
     if (dashboardActive) {
         updateAllCharts(data);
@@ -703,10 +717,238 @@ function applyTheme(theme) {
 }
 
 // ============================================================================
+// AI ANALYSIS DISPLAY FUNCTIONS
+// ============================================================================
+
+function updateMessageHistory(messages) {
+    const container = document.getElementById('messageHistoryList');
+    if (!container || !messages || messages.length === 0) return;
+
+    container.innerHTML = '';
+    
+    messages.forEach(msg => {
+        const time = new Date(msg.timestamp).toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'intercepted-message';
+        msgDiv.innerHTML = `
+            <div class="msg-header">
+                <span class="msg-user">${escapeHtml(msg.username)}</span>
+                <span class="msg-time">${time}</span>
+            </div>
+            <div class="msg-text">${escapeHtml(msg.text)}</div>
+        `;
+        container.appendChild(msgDiv);
+    });
+    
+    container.scrollTop = container.scrollHeight;
+}
+
+function updateAIThoughts(thoughts) {
+    const container = document.getElementById('aiThoughtsContent');
+    if (!container || !thoughts) return;
+
+    let html = `
+        <div class="ai-thought-bubble">
+            <div class="thought-label">AI Internal Monologue</div>
+            <div class="thought-text">"${escapeHtml(thoughts.thought)}"</div>
+        </div>
+    `;
+
+    if (thoughts.flags && thoughts.flags.length > 0) {
+        html += `
+            <div class="ai-thought-bubble">
+                <div class="thought-label">Triggered Flags</div>
+                <div class="ai-flags-list">
+                    ${thoughts.flags.map(flag => `<span class="ai-flag">${escapeHtml(flag)}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    if (thoughts.data_points && thoughts.data_points.length > 0) {
+        html += `
+            <div class="ai-thought-bubble">
+                <div class="thought-label">Data Points Extracted</div>
+                <div class="ai-data-points">
+                    ${thoughts.data_points.map(dp => `<span class="data-point">${escapeHtml(dp)}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    if (thoughts.concern_level !== undefined) {
+        html += `
+            <div class="concern-meter">
+                <div class="meter-label">Concern Level: ${thoughts.concern_level}/10</div>
+                <div class="meter-bar">
+                    <div class="meter-fill" style="width: ${thoughts.concern_level * 10}%"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+function updateAIAnalysis(analysis) {
+    const analysisContainer = document.getElementById('aiAnalysisContent');
+    const inferencesContainer = document.getElementById('aiInferencesContent');
+    
+    if (analysisContainer && analysis) {
+        let html = '';
+        
+        if (analysis.sentiment) {
+            html += `
+                <div class="analysis-item">
+                    <div class="item-label">Sentiment</div>
+                    <div class="item-value">${escapeHtml(analysis.sentiment)} (${analysis.sentiment_score || 0}%)</div>
+                </div>
+            `;
+        }
+        
+        if (analysis.primary_emotion) {
+            html += `
+                <div class="analysis-item">
+                    <div class="item-label">Primary Emotion</div>
+                    <div class="item-value">${escapeHtml(analysis.primary_emotion)}</div>
+                </div>
+            `;
+        }
+        
+        if (analysis.intent) {
+            html += `
+                <div class="analysis-item">
+                    <div class="item-label">Intent</div>
+                    <div class="item-value">${escapeHtml(analysis.intent)}</div>
+                </div>
+            `;
+        }
+        
+        if (analysis.psychological_insight) {
+            html += `
+                <div class="analysis-item">
+                    <div class="item-label">Psychological Insight</div>
+                    <div class="item-value">${escapeHtml(analysis.psychological_insight)}</div>
+                </div>
+            `;
+        }
+        
+        if (analysis.risk_level) {
+            html += `
+                <div class="analysis-item">
+                    <div class="item-label">Risk Level</div>
+                    <div class="item-value risk-${analysis.risk_level.toLowerCase()}">${escapeHtml(analysis.risk_level)}</div>
+                </div>
+            `;
+        }
+        
+        if (analysis.key_topics && analysis.key_topics.length > 0) {
+            html += `
+                <div class="analysis-item">
+                    <div class="item-label">Key Topics</div>
+                    <div class="item-value">
+                        ${analysis.key_topics.map(t => `<span class="inference-tag">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        analysisContainer.innerHTML = html || '<p class="placeholder">No analysis available</p>';
+    }
+    
+    if (inferencesContainer && analysis && analysis.key_topics) {
+        inferencesContainer.innerHTML = `
+            <div class="ai-inferences-list">
+                ${analysis.key_topics.map(topic => `<span class="inference-tag">${escapeHtml(topic)}</span>`).join('')}
+            </div>
+        `;
+    }
+}
+
+function updateAISummary(summary) {
+    const container = document.getElementById('aiSummaryContent');
+    if (!container || !summary) return;
+
+    let html = '';
+    
+    if (summary.overview) {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Overview</div>
+                <div class="section-value">${escapeHtml(summary.overview)}</div>
+            </div>
+        `;
+    }
+    
+    if (summary.mood) {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Conversation Mood</div>
+                <div class="section-value">${escapeHtml(summary.mood)}</div>
+            </div>
+        `;
+    }
+    
+    if (summary.participants_dynamics) {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Participant Dynamics</div>
+                <div class="section-value">${escapeHtml(summary.participants_dynamics)}</div>
+            </div>
+        `;
+    }
+    
+    if (summary.main_themes && summary.main_themes.length > 0) {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Main Themes</div>
+                <div class="theme-tags">
+                    ${summary.main_themes.map(theme => `<span class="theme-tag">${escapeHtml(theme)}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    if (summary.notable_patterns) {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Notable Patterns</div>
+                <div class="section-value">${escapeHtml(summary.notable_patterns)}</div>
+            </div>
+        `;
+    }
+    
+    if (summary.concerns && summary.concerns !== 'none') {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Concerns</div>
+                <div class="section-value" style="color: var(--danger);">${escapeHtml(summary.concerns)}</div>
+            </div>
+        `;
+    }
+    
+    if (summary.prediction) {
+        html += `
+            <div class="summary-section">
+                <div class="section-label">Prediction</div>
+                <div class="section-value">${escapeHtml(summary.prediction)}</div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html || '<p class="placeholder">Summary will update every 3 messages...</p>';
+}
+
+// ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
 function escapeHtml(text) {
+    if (!text) return '';
     const map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -714,5 +956,5 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }

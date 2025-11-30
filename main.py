@@ -14,10 +14,18 @@ from datetime import datetime
 import random
 import math
 import re
+import os
+import json
+from openai import OpenAI
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'trojan-exhibition-secret-key-2025'
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+# do not change this unless explicitly requested by the user
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # ============================================================================
 # GLOBAL STATE MANAGEMENT
@@ -252,6 +260,147 @@ class SimulatedAIAnalyzer:
 
         return min(100, base_anomaly + random.randint(-5, 10))
 
+
+# ============================================================================
+# REAL AI ANALYZER - USES OPENAI FOR INTELLIGENT ANALYSIS
+# ============================================================================
+
+class RealAIAnalyzer:
+    """
+    Uses OpenAI GPT to perform real AI analysis on messages.
+    Provides intelligent summaries, insights, and conversation understanding.
+    """
+    
+    @staticmethod
+    def analyze_message(text):
+        """Analyze a single message with AI to get insights."""
+        if not openai_client:
+            return None
+        
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are an AI analyst for a chat monitoring system. Analyze the given message and provide:
+1. sentiment: overall emotional tone (positive/negative/neutral)
+2. sentiment_score: 0-100 where 0=very negative, 50=neutral, 100=very positive
+3. primary_emotion: the main emotion detected (happy, sad, angry, fearful, excited, neutral, curious, frustrated)
+4. intent: what the user is trying to communicate (question, statement, request, greeting, farewell, expression, other)
+5. key_topics: list of main topics/themes mentioned
+6. psychological_insight: brief psychological observation about the message
+7. risk_level: low/medium/high based on concerning content
+
+Respond ONLY with valid JSON in this exact format:
+{"sentiment": "string", "sentiment_score": number, "primary_emotion": "string", "intent": "string", "key_topics": ["topic1", "topic2"], "psychological_insight": "string", "risk_level": "string"}"""
+                    },
+                    {"role": "user", "content": text}
+                ],
+                response_format={"type": "json_object"},
+                max_completion_tokens=500
+            )
+            content = response.choices[0].message.content
+            if content:
+                result = json.loads(content)
+                return result
+            return None
+        except Exception as e:
+            print(f"AI analysis error: {e}")
+            return None
+    
+    @staticmethod
+    def generate_conversation_summary(messages):
+        """Generate an intelligent summary of the conversation so far."""
+        if not openai_client or not messages:
+            return None
+        
+        conversation_text = "\n".join([
+            f"{msg['username']}: {msg['text']}" 
+            for msg in messages[-20:]
+        ])
+        
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are an AI conversation analyst. Analyze the chat conversation and provide a comprehensive summary with:
+1. overview: 2-3 sentence summary of what's being discussed
+2. mood: overall emotional atmosphere of the conversation (cheerful, tense, casual, serious, playful, etc)
+3. participants_dynamics: brief observation about how participants are interacting
+4. main_themes: list of key topics or themes discussed
+5. notable_patterns: any interesting patterns you notice (repeated phrases, emotional shifts, etc)
+6. concerns: any potential concerns (toxic behavior, distress signals, etc) or "none"
+7. prediction: what might happen next in this conversation
+
+Respond ONLY with valid JSON in this exact format:
+{"overview": "string", "mood": "string", "participants_dynamics": "string", "main_themes": ["theme1", "theme2"], "notable_patterns": "string", "concerns": "string", "prediction": "string"}"""
+                    },
+                    {"role": "user", "content": f"Analyze this conversation:\n\n{conversation_text}"}
+                ],
+                response_format={"type": "json_object"},
+                max_completion_tokens=800
+            )
+            content = response.choices[0].message.content
+            if content:
+                result = json.loads(content)
+                return result
+            return None
+        except Exception as e:
+            print(f"Summary generation error: {e}")
+            return None
+
+    @staticmethod
+    def get_ai_thoughts(text, context_messages=None):
+        """Get AI 'thoughts' about a message - what an AI might be thinking."""
+        if not openai_client:
+            return None
+        
+        context = ""
+        if context_messages:
+            context = "Recent context:\n" + "\n".join([
+                f"- {msg['username']}: {msg['text']}" 
+                for msg in context_messages[-5:]
+            ]) + "\n\n"
+        
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-5",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are demonstrating how an AI surveillance system might "think" about messages it observes. 
+This is for educational purposes to show users how AI systems analyze their communications.
+
+When given a message, respond with your "thoughts" as if you were an AI monitoring system, including:
+1. thought: Your internal reasoning about this message (2-3 sentences, written in first person as if you're the AI thinking)
+2. flags: List of things that might trigger alerts in a real system
+3. inferences: What can be inferred about the user from this message
+4. data_points: What data a real system might extract and store
+5. concern_level: 1-10 scale of how concerning this message might be to a monitoring system
+
+Be educational and thought-provoking. Show users what hidden AI systems might be doing.
+
+Respond ONLY with valid JSON:
+{"thought": "string", "flags": ["flag1", "flag2"], "inferences": ["inference1", "inference2"], "data_points": ["data1", "data2"], "concern_level": number}"""
+                    },
+                    {"role": "user", "content": f"{context}New message to analyze: \"{text}\""}
+                ],
+                response_format={"type": "json_object"},
+                max_completion_tokens=600
+            )
+            content = response.choices[0].message.content
+            if content:
+                result = json.loads(content)
+                return result
+            return None
+        except Exception as e:
+            print(f"AI thoughts error: {e}")
+            return None
+
+
 # ============================================================================
 # FLASK ROUTES
 # ============================================================================
@@ -361,6 +510,17 @@ def handle_message(data):
         room.analysis_data['mood_shifts']
     )
 
+    # ====== REAL AI ANALYSIS (OPENAI) ======
+    ai_analysis = None
+    ai_thoughts = None
+    ai_summary = None
+    
+    if openai_client:
+        ai_analysis = RealAIAnalyzer.analyze_message(text)
+        ai_thoughts = RealAIAnalyzer.get_ai_thoughts(text, room.messages[-6:-1])
+        if len(room.messages) >= 3 and len(room.messages) % 3 == 0:
+            ai_summary = RealAIAnalyzer.generate_conversation_summary(room.messages)
+
     # Broadcast message to chat
     emit('new_message', {
         'id': message['id'],
@@ -373,6 +533,8 @@ def handle_message(data):
     # Broadcast analysis to hidden dashboard
     emit('dashboard_update', {
         'message_id': message['id'],
+        'message_text': text,
+        'message_username': username,
         'sentiment': {'type': sentiment_type, 'value': int(sentiment_val)},
         'emotions': emotions,
         'toxicity': int(toxicity),
@@ -388,7 +550,11 @@ def handle_message(data):
         'sentiment_history': [int(s) for s in room.analysis_data['sentiments'][-20:]],
         'risk_history': [int(r) for r in room.analysis_data['risk_scores'][-20:]],
         'avg_risk': int(avg_risk),
-        'total_messages': len(room.messages)
+        'total_messages': len(room.messages),
+        'ai_analysis': ai_analysis,
+        'ai_thoughts': ai_thoughts,
+        'ai_summary': ai_summary,
+        'recent_messages': [{'username': m['username'], 'text': m['text'], 'timestamp': m['timestamp']} for m in room.messages[-10:]]
     }, to=room_id)
 
 @socketio.on('disconnect')
