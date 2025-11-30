@@ -1,6 +1,7 @@
 import csv
 import os
 import uuid
+import secrets
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
@@ -11,6 +12,20 @@ from models import User
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'auth.login'
+
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(32)
+    return session['_csrf_token']
+
+def validate_csrf_token():
+    token = session.get('_csrf_token')
+    form_token = request.form.get('csrf_token')
+    if not token or token != form_token:
+        return False
+    return True
+
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 CSV_FILE = 'data/users.csv'
 
@@ -53,6 +68,10 @@ def login():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
+        if not validate_csrf_token():
+            flash('Invalid request. Please try again.', 'error')
+            return render_template('auth.html', mode='login')
+        
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         
@@ -79,6 +98,10 @@ def signup():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
+        if not validate_csrf_token():
+            flash('Invalid request. Please try again.', 'error')
+            return render_template('auth.html', mode='signup')
+        
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
