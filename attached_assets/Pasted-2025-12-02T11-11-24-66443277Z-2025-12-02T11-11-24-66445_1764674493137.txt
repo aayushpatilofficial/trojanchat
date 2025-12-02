@@ -1,0 +1,50 @@
+2025-12-02T11:11:24.66443277Z 
+2025-12-02T11:11:24.66445143Z [notice] A new release of pip is available: 24.0 -> 25.3
+2025-12-02T11:11:24.6644556Z [notice] To update, run: pip install --upgrade pip
+2025-12-02T11:11:28.842987071Z ==> Uploading build...
+2025-12-02T11:11:41.013958433Z ==> Uploaded in 9.0s. Compression took 3.2s
+2025-12-02T11:11:41.081129619Z ==> Build successful 🎉
+2025-12-02T11:11:43.886476714Z ==> Deploying...
+2025-12-02T11:12:50.61004628Z ==> No open ports detected, continuing to scan...
+2025-12-02T11:12:50.761148217Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-12-02T11:13:04.93394734Z ==> Your service is live 🎉
+2025-12-02T11:13:04.993310285Z ==> 
+2025-12-02T11:13:05.024944592Z ==> ///////////////////////////////////////////////////////////
+2025-12-02T11:13:05.056736039Z ==> 
+2025-12-02T11:13:05.092489366Z ==> Available at your primary URL https://trojanchat-3.onrender.com
+2025-12-02T11:13:05.124479533Z ==> 
+2025-12-02T11:13:05.155224751Z ==> ///////////////////////////////////////////////////////////
+2025-12-02T11:14:53.334720579Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:14:53.336342876Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:19.973963955Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:19.975160093Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:22.257765865Z AI analysis error: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Max retries exceeded with url: /v1beta/models/gemini-2.5-flash:generateContent (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7570ace97090>: Failed to resolve 'generativelanguage.googleapis.com' ([Errno -3] Lookup timed out)"))
+2025-12-02T11:16:22.257785496Z AI thoughts error: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Max retries exceeded with url: /v1beta/models/gemini-2.5-flash:generateContent (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7570acd3ad50>: Failed to resolve 'generativelanguage.googleapis.com' ([Errno -3] Lookup timed out)"))
+2025-12-02T11:16:22.257791866Z Intent detection error: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Max retries exceeded with url: /v1beta/models/gemini-2.5-flash:generateContent (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7570acd50d90>: Failed to resolve 'generativelanguage.googleapis.com' ([Errno -3] Lookup timed out)"))
+2025-12-02T11:16:22.257804456Z Emotional mirror error: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Max retries exceeded with url: /v1beta/models/gemini-2.5-flash:generateContent (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7570acd609d0>: Failed to resolve 'generativelanguage.googleapis.com' ([Errno -3] Lookup timed out)"))
+2025-12-02T11:16:22.257807116Z Reply suggestion error: HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Max retries exceeded with url: /v1beta/models/gemini-2.5-flash:generateContent (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x7570acd62b10>: Failed to resolve 'generativelanguage.googleapis.com' ([Errno -3] Lookup timed out)"))
+2025-12-02T11:16:22.257810586Z 127.0.0.1 - - [02/Dec/2025:11:16:22 +0000] "GET /auth/login HTTP/1.1" 200 2379 "-" "Mozilla/5.0 (compatible)"
+2025-12-02T11:16:30.122533668Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:30.124722168Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:30.185172457Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:30.186983729Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:40.338402757Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:40.339862531Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:40.401118948Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:40.402711584Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:50.551625995Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:50.553655442Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:16:50.614225613Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:16:50.615709288Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:17:00.765678183Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:17:00.768498718Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:17:00.826709105Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:17:00.828277691Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:17:10.980046075Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:17:10.98155354Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:17:11.038782575Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:17:11.039844829Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:17:21.194057741Z INFO:root:AFC is enabled with max remote calls: 10.
+2025-12-02T11:17:21.196064778Z DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): generativelanguage.googleapis.com:443
+2025-12-02T11:17:58.591111492Z ==> Detected service running on port 10000
+2025-12-02T11:17:58.706330595Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
