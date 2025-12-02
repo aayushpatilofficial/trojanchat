@@ -70,3 +70,8 @@ outputType = "webview"
 task = "shell.exec"
 args = "python main.py"
 waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+DATABASE_URL = "postgresql://trojan_chat_user:s9JB5jNAjTT1j2pTxK6RYm0ahLpnZNTY@dpg-d4nbpnshg0os73cjp0rg-a/trojan_chat"
