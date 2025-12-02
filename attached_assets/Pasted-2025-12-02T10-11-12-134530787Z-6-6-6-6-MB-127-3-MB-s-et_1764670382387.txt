@@ -1,0 +1,50 @@
+2025-12-02T10:11:12.134530787Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 127.3 MB/s eta 0:00:00
+2025-12-02T10:11:12.145186761Z Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+2025-12-02T10:11:12.156537195Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 463.6/463.6 kB 47.7 MB/s eta 0:00:00
+2025-12-02T10:11:12.166718856Z Downloading pydantic_core-2.41.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2025-12-02T10:11:12.190164794Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 94.8 MB/s eta 0:00:00
+2025-12-02T10:11:12.200593901Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+2025-12-02T10:11:12.210904186Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.7/64.7 kB 6.8 MB/s eta 0:00:00
+2025-12-02T10:11:12.221439267Z Downloading simple_websocket-1.1.0-py3-none-any.whl (13 kB)
+2025-12-02T10:11:12.239499326Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2025-12-02T10:11:12.258324346Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2025-12-02T10:11:12.273929067Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 44.6/44.6 kB 2.6 MB/s eta 0:00:00
+2025-12-02T10:11:12.286686499Z Downloading websockets-14.2-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (169 kB)
+2025-12-02T10:11:12.297620731Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 169.9/169.9 kB 17.5 MB/s eta 0:00:00
+2025-12-02T10:11:12.308257185Z Downloading packaging-25.0-py3-none-any.whl (66 kB)
+2025-12-02T10:11:12.31821963Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.5/66.5 kB 7.0 MB/s eta 0:00:00
+2025-12-02T10:11:12.328302188Z Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+2025-12-02T10:11:12.346425259Z Downloading cachetools-6.2.2-py3-none-any.whl (11 kB)
+2025-12-02T10:11:12.365275709Z Downloading certifi-2025.11.12-py3-none-any.whl (159 kB)
+2025-12-02T10:11:12.37723318Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 159.4/159.4 kB 14.7 MB/s eta 0:00:00
+2025-12-02T10:11:12.388162661Z Downloading charset_normalizer-3.4.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (151 kB)
+2025-12-02T10:11:12.400278726Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 151.6/151.6 kB 14.0 MB/s eta 0:00:00
+2025-12-02T10:11:12.410852588Z Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+2025-12-02T10:11:12.423833356Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 181.3/181.3 kB 15.9 MB/s eta 0:00:00
+2025-12-02T10:11:12.435815457Z Downloading rsa-4.9.1-py3-none-any.whl (34 kB)
+2025-12-02T10:11:12.455416079Z Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+2025-12-02T10:11:12.474901657Z Downloading urllib3-2.5.0-py3-none-any.whl (129 kB)
+2025-12-02T10:11:12.487294499Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 129.8/129.8 kB 11.5 MB/s eta 0:00:00
+2025-12-02T10:11:12.498295293Z Downloading wsproto-1.3.2-py3-none-any.whl (24 kB)
+2025-12-02T10:11:12.518003427Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2025-12-02T10:11:12.537895586Z Downloading pyasn1-0.6.1-py3-none-any.whl (83 kB)
+2025-12-02T10:11:12.550101203Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.1/83.1 kB 7.1 MB/s eta 0:00:00
+2025-12-02T10:11:12.797890996Z Installing collected packages: websockets, urllib3, typing-extensions, six, python-dotenv, pyasn1, psycopg2-binary, pillow, packaging, MarkupSafe, itsdangerous, idna, h11, greenlet, dnspython, click, charset_normalizer, certifi, cachetools, blinker, bidict, annotated-types, wsproto, Werkzeug, typing-inspection, sqlalchemy, rsa, requests, pydantic-core, pyasn1-modules, Jinja2, gunicorn, eventlet, email-validator, simple-websocket, pydantic, google-auth, Flask, python-engineio, google-genai, flask-sqlalchemy, Flask-Login, python-socketio, Flask-SocketIO
+2025-12-02T10:11:17.551742497Z Successfully installed Flask-2.3.2 Flask-Login-0.6.3 Flask-SocketIO-5.3.4 Jinja2-3.1.6 MarkupSafe-3.0.3 Werkzeug-2.3.6 annotated-types-0.7.0 bidict-0.23.1 blinker-1.9.0 cachetools-6.2.2 certifi-2025.11.12 charset_normalizer-3.4.4 click-8.3.1 dnspython-2.8.0 email-validator-2.1.0 eventlet-0.33.3 flask-sqlalchemy-3.1.1 google-auth-2.43.0 google-genai-0.3.0 greenlet-3.2.4 gunicorn-21.2.0 h11-0.16.0 idna-3.11 itsdangerous-2.2.0 packaging-25.0 pillow-11.3.0 psycopg2-binary-2.9.9 pyasn1-0.6.1 pyasn1-modules-0.4.2 pydantic-2.12.5 pydantic-core-2.41.5 python-dotenv-1.0.0 python-engineio-4.7.1 python-socketio-5.9.0 requests-2.32.5 rsa-4.9.1 simple-websocket-1.1.0 six-1.17.0 sqlalchemy-2.0.23 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.5.0 websockets-14.2 wsproto-1.3.2
+2025-12-02T10:11:17.739524706Z 
+2025-12-02T10:11:17.739550257Z [notice] A new release of pip is available: 24.0 -> 25.3
+2025-12-02T10:11:17.739555437Z [notice] To update, run: pip install --upgrade pip
+2025-12-02T10:11:22.140403721Z ==> Uploading build...
+2025-12-02T10:11:35.122020059Z ==> Uploaded in 9.9s. Compression took 3.1s
+2025-12-02T10:11:35.206303614Z ==> Build successful 🎉
+2025-12-02T10:11:37.622194058Z ==> Deploying...
+2025-12-02T10:12:10.104226066Z ==> Running 'gunicorn main:app'
+2025-12-02T10:12:20.5027787Z 
+2025-12-02T10:12:20.50280352Z Error: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.
+2025-12-02T10:12:20.50280687Z 
+2025-12-02T10:12:25.208745701Z ==> Exited with status 1
+2025-12-02T10:12:25.228732509Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-12-02T10:12:30.47661958Z ==> Running 'gunicorn main:app'
+2025-12-02T10:12:40.47154127Z 
+2025-12-02T10:12:40.47155967Z Error: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.
+2025-12-02T10:12:40.471565671Z 
