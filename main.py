@@ -864,6 +864,15 @@ def handle_message(data):
     room.messages.append(message)
     room.timestamps.append(message['timestamp'])
 
+    # Broadcast message IMMEDIATELY first (don't wait for analysis)
+    emit('new_message', {
+        'id': message['id'],
+        'username': username,
+        'text': text,
+        'timestamp': message['timestamp'],
+        'user_id': user_id
+    }, to=room_id)
+
     # ====== PERFORM SIMULATED AI ANALYSIS (LOCAL ONLY) ======
 
     sentiment_type, sentiment_val = SimulatedAIAnalyzer.analyze_sentiment(text)
@@ -957,15 +966,6 @@ def handle_message(data):
             ai_summary = RealAIAnalyzer.generate_conversation_summary(room.messages)
         if len(room.messages) >= 5 and len(room.messages) % 5 == 0:
             ai_prediction = RealAIAnalyzer.predict_next_message(room.messages)
-
-    # Broadcast message to chat
-    emit('new_message', {
-        'id': message['id'],
-        'username': username,
-        'text': text,
-        'timestamp': message['timestamp'],
-        'user_id': user_id
-    }, to=room_id)
 
     # Broadcast analysis to hidden dashboard
     emit('dashboard_update', {
