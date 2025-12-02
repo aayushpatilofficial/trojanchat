@@ -1,0 +1,93 @@
+2025-12-02T11:06:40.97975766Z ==> Deploying...
+2025-12-02T11:07:07.299322332Z ==> Running 'gunicorn --worker-class eventlet -w 1 --timeout 120 --keep-alive 5 --bind 0.0.0.0:$PORT main:app'
+2025-12-02T11:07:21.480446539Z [2025-12-02 11:07:21 +0000] [55] [INFO] Starting gunicorn 21.2.0
+2025-12-02T11:07:21.480973101Z [2025-12-02 11:07:21 +0000] [55] [INFO] Listening at: http://0.0.0.0:10000 (55)
+2025-12-02T11:07:21.481048293Z [2025-12-02 11:07:21 +0000] [55] [INFO] Using worker: eventlet
+2025-12-02T11:07:21.502031383Z [2025-12-02 11:07:21 +0000] [56] [INFO] Booting worker with pid: 56
+2025-12-02T11:07:31.764218188Z ==> Your service is live 🎉
+2025-12-02T11:07:31.830141542Z ==> 
+2025-12-02T11:07:31.864829209Z ==> ///////////////////////////////////////////////////////////
+2025-12-02T11:07:31.904977165Z ==> 
+2025-12-02T11:07:31.936409482Z ==> Available at your primary URL https://trojanchat-3.onrender.com
+2025-12-02T11:07:31.970378939Z ==> 
+2025-12-02T11:07:32.005884676Z ==> ///////////////////////////////////////////////////////////
+2025-12-02T11:07:42.606159232Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Go-http-client/1.1"
+2025-12-02T11:07:42.607208806Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Go-http-client/1.1"
+2025-12-02T11:07:42.694419963Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Go-http-client/1.1"
+2025-12-02T11:07:42.695788115Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "GET /socket.io/?EIO=4&transport=polling&t=PhUlmd9 HTTP/1.1" 200 97 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:42.697251678Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "GET / HTTP/1.1" 200 2388 "-" "Go-http-client/2.0"
+2025-12-02T11:07:42.698754743Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "GET / HTTP/1.1" 200 2388 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:42.699682764Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Go-http-client/1.1"
+2025-12-02T11:07:42.70084759Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "HEAD / HTTP/1.1" 200 0 "-" "Go-http-client/1.1"
+2025-12-02T11:07:42.977136889Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "POST /socket.io/?EIO=4&transport=polling&t=PhUlp0d&sid=jEFPXkaY_3I4z-2CAAAA HTTP/1.1" 200 2 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:42.977698611Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "GET /socket.io/?EIO=4&transport=polling&t=PhUlp0e&sid=jEFPXkaY_3I4z-2CAAAA HTTP/1.1" 200 109 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:42.999643504Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "GET /static/theme.js HTTP/1.1" 304 0 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:43.00121654Z 127.0.0.1 - - [02/Dec/2025:11:07:42 +0000] "GET /static/style.css HTTP/1.1" 304 0 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:43.751717299Z 127.0.0.1 - - [02/Dec/2025:11:07:43 +0000] "GET /socket.io/?EIO=4&transport=polling&t=PhUlp5G&sid=jEFPXkaY_3I4z-2CAAAA HTTP/1.1" 200 1 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:07:44.034164758Z 127.0.0.1 - - [02/Dec/2025:11:07:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=PhUlpHC&sid=jEFPXkaY_3I4z-2CAAAA HTTP/1.1" 200 1 "https://trojanchat-3.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+2025-12-02T11:08:10.742127197Z ERROR:app:Exception on /auth/signup [POST]
+2025-12-02T11:08:10.742151968Z Traceback (most recent call last):
+2025-12-02T11:08:10.742158028Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+2025-12-02T11:08:10.742162898Z     response = self.full_dispatch_request()
+2025-12-02T11:08:10.742178589Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742182599Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+2025-12-02T11:08:10.742185359Z     rv = self.handle_user_exception(e)
+2025-12-02T11:08:10.742188169Z          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742191189Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+2025-12-02T11:08:10.742194889Z     rv = self.dispatch_request()
+2025-12-02T11:08:10.742197449Z          ^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742200129Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+2025-12-02T11:08:10.742203459Z     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+2025-12-02T11:08:10.742206219Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742209909Z   File "/opt/render/project/src/auth.py", line 90, in signup
+2025-12-02T11:08:10.74221275Z     existing_user = User.query.filter_by(email=email).first()
+2025-12-02T11:08:10.742215339Z                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742217839Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2748, in first
+2025-12-02T11:08:10.742220519Z     return self.limit(1)._iter().first()  # type: ignore
+2025-12-02T11:08:10.74222313Z            ^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.74222557Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2847, in _iter
+2025-12-02T11:08:10.74222846Z     result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+2025-12-02T11:08:10.74223123Z                                                   ^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.7422338Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2025-12-02T11:08:10.74223628Z     return self._execute_internal(
+2025-12-02T11:08:10.74223905Z            ^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.74224177Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2180, in _execute_internal
+2025-12-02T11:08:10.74224457Z     conn = self._connection_for_bind(bind)
+2025-12-02T11:08:10.74224712Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.7422504Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2047, in _connection_for_bind
+2025-12-02T11:08:10.74225304Z     return trans._connection_for_bind(engine, execution_options)
+2025-12-02T11:08:10.74225562Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742258191Z   File "<string>", line 2, in _connection_for_bind
+2025-12-02T11:08:10.742261011Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+2025-12-02T11:08:10.742263891Z     ret_value = fn(self, *arg, **kw)
+2025-12-02T11:08:10.742266611Z                 ^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742269311Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1143, in _connection_for_bind
+2025-12-02T11:08:10.742271971Z     conn = bind.connect()
+2025-12-02T11:08:10.742275021Z            ^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742277941Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3268, in connect
+2025-12-02T11:08:10.742280771Z     return self._connection_cls(self)
+2025-12-02T11:08:10.742293081Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742296361Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 145, in __init__
+2025-12-02T11:08:10.742299331Z     self._dbapi_connection = engine.raw_connection()
+2025-12-02T11:08:10.742302021Z                              ^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742304621Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 3292, in raw_connection
+2025-12-02T11:08:10.742306981Z     return self.pool.connect()
+2025-12-02T11:08:10.742309382Z            ^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742312122Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 452, in connect
+2025-12-02T11:08:10.742314642Z     return _ConnectionFairy._checkout(self)
+2025-12-02T11:08:10.742317582Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742320312Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 1269, in _checkout
+2025-12-02T11:08:10.742322952Z     fairy = _ConnectionRecord.checkout(pool)
+2025-12-02T11:08:10.742325972Z             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742328392Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/pool/base.py", line 716, in checkout
+2025-12-02T11:08:10.742331742Z     rec = pool._do_get()
+2025-12-02T11:08:10.742334362Z           ^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742336882Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/pool/impl.py", line 148, in _do_get
+2025-12-02T11:08:10.742339432Z     return self._pool.get(wait, self._timeout)
+2025-12-02T11:08:10.742342302Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T11:08:10.742360473Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/util/queue.py", line 204, in get
+2025-12-02T11:08:10.742363893Z     self.not_full.notify()
+2025-12-02T11:08:10.742366593Z   File "/opt/render/project/python/Python-3.11.9/lib/python3.11/threading.py", line 377, in notify
+2025-12-02T11:08:10.742369383Z     raise RuntimeError("cannot notify on un-acquired lock")
+2025-12-02T11:08:10.742372163Z RuntimeError: cannot notify on un-acquired lock
+2025-12-02T11:08:10.74311083Z 127.0.0.1 - - [02/Dec/2025:11:08:10 +0000] "POST /auth/signup HTTP/1.1" 500 265 "https://trojanchat-3.onrender.com/auth/signup" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"

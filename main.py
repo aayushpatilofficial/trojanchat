@@ -7,6 +7,9 @@ could theoretically exist within innocent-looking applications. All analysis is 
 without actual spying, data storage, or external transmission. Purpose: Cyber awareness education.
 """
 
+import eventlet
+eventlet.monkey_patch()
+
 from flask import render_template, request, session, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_login import current_user
