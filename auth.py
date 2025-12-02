@@ -1,5 +1,3 @@
-import csv
-import os
 import uuid
 import secrets
 from functools import wraps
@@ -27,38 +25,9 @@ def validate_csrf_token():
 
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
-CSV_FILE = 'data/users.csv'
-
-def ensure_csv_exists():
-    os.makedirs('data', exist_ok=True)
-    if not os.path.exists(CSV_FILE):
-        with open(CSV_FILE, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'email', 'password_hash', 'first_name', 'last_name'])
-
-ensure_csv_exists()
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
-
-def get_user_from_csv(email):
-    ensure_csv_exists()
-    with open(CSV_FILE, 'r', newline='') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row['email'] == email:
-                return row
-    return None
-
-def add_user_to_csv(user_id, email, password_hash, first_name, last_name):
-    ensure_csv_exists()
-    with open(CSV_FILE, 'a', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow([user_id, email, password_hash, first_name, last_name])
-
-def email_exists_in_csv(email):
-    return get_user_from_csv(email) is not None
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -79,13 +48,11 @@ def login():
             flash('Please enter both email and password.', 'error')
             return render_template('auth.html', mode='login')
         
-        csv_user = get_user_from_csv(email)
-        if csv_user and check_password_hash(csv_user['password_hash'], password):
-            user = User.query.get(csv_user['id'])
-            if user:
-                login_user(user)
-                next_url = session.pop('next_url', None)
-                return redirect(next_url or url_for('index'))
+        user = User.query.filter_by(email=email).first()
+        if user and user.password_hash and check_password_hash(user.password_hash, password):
+            login_user(user)
+            next_url = session.pop('next_url', None)
+            return redirect(next_url or url_for('index'))
         
         flash('Invalid email or password.', 'error')
         return render_template('auth.html', mode='login')
@@ -120,18 +87,18 @@ def signup():
             flash('Password must be at least 6 characters.', 'error')
             return render_template('auth.html', mode='signup')
         
-        if email_exists_in_csv(email):
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
             flash('An account with this email already exists.', 'error')
             return render_template('auth.html', mode='signup')
         
         user_id = str(uuid.uuid4())
-        password_hash = generate_password_hash(password)
-        
-        add_user_to_csv(user_id, email, password_hash, first_name, last_name)
+        hashed_password = generate_password_hash(password)
         
         user = User()
         user.id = user_id
         user.email = email
+        user.password_hash = hashed_password
         user.first_name = first_name if first_name else None
         user.last_name = last_name if last_name else None
         user.profile_image_url = None
