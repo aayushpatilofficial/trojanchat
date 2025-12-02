@@ -23,9 +23,19 @@ from google.genai import types
 from app import app, db
 from models import User
 from auth import auth_bp, require_login
+from sqlalchemy import text
 
 with app.app_context():
     db.create_all()
+    
+    try:
+        db.session.execute(text("""
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR;
+        """))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Migration note: {e}")
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 

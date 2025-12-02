@@ -1,0 +1,50 @@
+2025-12-02T10:49:56.430273025Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430275154Z   File "/opt/render/project/src/auth.py", line 90, in signup
+2025-12-02T10:49:56.430277485Z     existing_user = User.query.filter_by(email=email).first()
+2025-12-02T10:49:56.430279615Z                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430281725Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2748, in first
+2025-12-02T10:49:56.430283825Z     return self.limit(1)._iter().first()  # type: ignore
+2025-12-02T10:49:56.430285995Z            ^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430288115Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2847, in _iter
+2025-12-02T10:49:56.430290195Z     result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+2025-12-02T10:49:56.430292235Z                                                   ^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430294385Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2308, in execute
+2025-12-02T10:49:56.430296535Z     return self._execute_internal(
+2025-12-02T10:49:56.430298605Z            ^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430300845Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2190, in _execute_internal
+2025-12-02T10:49:56.430302925Z     result: Result[Any] = compile_state_cls.orm_execute_statement(
+2025-12-02T10:49:56.430305675Z                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430309125Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+2025-12-02T10:49:56.430312855Z     result = conn.execute(
+2025-12-02T10:49:56.430316055Z              ^^^^^^^^^^^^^
+2025-12-02T10:49:56.430319785Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+2025-12-02T10:49:56.430323205Z     return meth(
+2025-12-02T10:49:56.430326595Z            ^^^^^
+2025-12-02T10:49:56.430329815Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 516, in _execute_on_connection
+2025-12-02T10:49:56.430340186Z     return connection._execute_clauseelement(
+2025-12-02T10:49:56.430343286Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430346296Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1639, in _execute_clauseelement
+2025-12-02T10:49:56.430349626Z     ret = self._execute_context(
+2025-12-02T10:49:56.430352656Z           ^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430355656Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+2025-12-02T10:49:56.430358516Z     return self._exec_single_context(
+2025-12-02T10:49:56.430361306Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-12-02T10:49:56.430364226Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+2025-12-02T10:49:56.430367236Z     self._handle_dbapi_exception(
+2025-12-02T10:49:56.430370226Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2343, in _handle_dbapi_exception
+2025-12-02T10:49:56.430373246Z     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+2025-12-02T10:49:56.430394797Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+2025-12-02T10:49:56.430398387Z     self.dialect.do_execute(
+2025-12-02T10:49:56.430401847Z   File "/opt/render/project/src/.venv/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 922, in do_execute
+2025-12-02T10:49:56.430404947Z     cursor.execute(statement, parameters)
+2025-12-02T10:49:56.430407827Z sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column users.password_hash does not exist
+2025-12-02T10:49:56.430410867Z LINE 1: ...users.id AS users_id, users.email AS users_email, users.pass...
+2025-12-02T10:49:56.430413837Z                                                              ^
+2025-12-02T10:49:56.430416657Z 
+2025-12-02T10:49:56.430420417Z [SQL: SELECT users.id AS users_id, users.email AS users_email, users.password_hash AS users_password_hash, users.first_name AS users_first_name, users.last_name AS users_last_name, users.profile_image_url AS users_profile_image_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+2025-12-02T10:49:56.430426997Z FROM users 
+2025-12-02T10:49:56.430430297Z WHERE users.email = %(email_1)s 
+2025-12-02T10:49:56.430433847Z  LIMIT %(param_1)s]
+2025-12-02T10:49:56.430436848Z [parameters: {'email_1': 'aayushpatilofficial@gmail.com', 'param_1': 1}]
+2025-12-02T10:49:56.430440188Z (Background on this error at: https://sqlalche.me/e/20/f405)
+2025-12-02T10:49:56.492974637Z 127.0.0.1 - - [02/Dec/2025:10:49:56 +0000] "POST /auth/signup HTTP/1.1" 500 265 "https://trojanchat-3.onrender.com/auth/signup" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
